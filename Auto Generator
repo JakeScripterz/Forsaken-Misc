@@ -1,48 +1,147 @@
-for i, v in ipairs(game.Workspace.Map.Ingame.Map:GetChildren()) do
-  if v.Name == "Generator" then
-    if v.Progress.Value ~= 4 then
-      local left = true
-      local right = true
-      local center = true
-      local available = 0
-      for index, value in ipairs(game.Players:GetChildren()) do
-          if value.Character.HumanoidRootPart.CFrame == v.Positions.Left.CFrame then
-              available +=1
-              left = false
-          end
-          if value.Character.HumanoidRootPart.CFrame == v.Positions.Right.CFrame then
-              available +=1
-              right = false
-          end
-          if value.Character.HumanoidRootPart.CFrame == v.Positions.Center.CFrame then
-              available +=1
-              center = false
-          end
-      end
-      if available < 3 then
-          local positiontoUse
-          if left == true then
-              positiontoUse = "Left"
-          elseif right == true then
-              positiontoUse = "Right"
-          elseif center == true then
-              positiontoUse = "Center"
-          end
-          if positiontoUse then
-          game.Players.LocalPlayer.Character.PrimaryPart.CFrame = v.Positions[positiontoUse].CFrame
-          wait(0.2)
-          v.Remotes.RF:InvokeServer("enter")
-          for i = 1, 4 do
-               -- if v.Progress.Value < 4 then
-                print(v.Progress.Value)
-                wait(1.5)
-                v.Remotes.RE:FireServer()
-               -- end
-          end
-          wait(0.2)
-                v.Remotes.RF:InvokeServer("leave")
+--// Written By SpookzWasHere 
+-- Constants
+local WORKSPACE = game:GetService("Workspace")
+local PLAYERS = game:GetService("Players")
+local LOCAL_PLAYER = PLAYERS.LocalPlayer
+local GENERATOR_PROGRESS_MAX = 4
+local INTERACTION_COOLDOWN = 0.2
+local GENERATOR_ACTION_DELAY = 1.5
+local MAX_RETRIES = 3
+
+-- Helper functions
+local function isPositionOccupied(position, players)
+    for _, player in ipairs(players) do
+        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            if player.Character.HumanoidRootPart.CFrame == position.CFrame then
+                return true
+            end
         end
-      end
     end
-  end
+    return false
 end
+
+local function findAvailablePosition(generator)
+    local positions = {
+        { name = "Left", available = true },
+        { name = "Right", available = true },
+        { name = "Center", available = true }
+    }
+    
+    local players = PLAYERS:GetChildren()
+    local availableCount = 3
+    
+    for _, pos in ipairs(positions) do
+        if generator.Positions:FindFirstChild(pos.name) then
+            if isPositionOccupied(generator.Positions[pos.name], players) then
+                pos.available = false
+                availableCount = availableCount - 1
+            end
+        else
+            pos.available = false
+            availableCount = availableCount - 1
+        end
+    end
+    
+    return availableCount < 3 and positions or nil
+end
+
+local function teleportToPosition(character, position)
+    if character and character.PrimaryPart then
+        character.PrimaryPart.CFrame = position.CFrame
+        return true
+    end
+    return false
+end
+
+local function operateGenerator(generator, position)
+    local success = false
+    local retries = 0
+    
+    -- Try to enter generator
+    repeat
+        success = pcall(function()
+            return generator.Remotes.RF:InvokeServer("enter")
+        end)
+        retries = retries + 1
+        if not success and retries < MAX_RETRIES then
+            task.wait(INTERACTION_COOLDOWN)
+        end
+    until success or retries >= MAX_RETRIES
+    
+    if not success then
+        warn("Failed to enter generator after", MAX_RETRIES, "attempts")
+        return
+    end
+    
+    -- Operate generator
+    for i = 1, GENERATOR_PROGRESS_MAX do
+        if generator.Progress.Value >= GENERATOR_PROGRESS_MAX then
+            break
+        end
+        
+        pcall(function()
+            generator.Remotes.RE:FireServer()
+        end)
+        
+        task.wait(GENERATOR_ACTION_DELAY)
+    end
+    
+    -- Leave generator
+    pcall(function()
+        generator.Remotes.RF:InvokeServer("leave")
+    end)
+end
+
+-- Main function
+local function autoOperateGenerators()
+    local character = LOCAL_PLAYER.Character
+    if not character or not character:FindFirstChild("HumanoidRootPart") then
+        warn("Character or HumanoidRootPart not found")
+        return
+    end
+    
+    local map = WORKSPACE:FindFirstChild("Map")
+    if not map then return end
+    
+    local ingameMap = map:FindFirstChild("Ingame")
+    if not ingameMap then return end
+    
+    local gameMap = ingameMap:FindFirstChild("Map")
+    if not gameMap then return end
+    
+    for _, generator in ipairs(gameMap:GetChildren()) do
+        if generator.Name == "Generator" and generator:FindFirstChild("Progress") then
+            -- Skip completed generators
+            if generator.Progress.Value >= GENERATOR_PROGRESS_MAX then
+                continue
+            end
+            
+            local positions = findAvailablePosition(generator)
+            if not positions then
+                continue
+            end
+            
+            -- Try each available position
+            for _, pos in ipairs(positions) do
+                if pos.available and generator.Positions:FindFirstChild(pos.name) then
+                    if teleportToPosition(character, generator.Positions[pos.name]) then
+                        task.wait(INTERACTION_COOLDOWN)
+                        operateGenerator(generator, pos)
+                        break
+                    end
+                end
+            end
+        end
+    end
+end
+
+-- Error handling wrapper
+local function safeAutoOperate()
+    local success, error = pcall(autoOperateGenerators)
+    if not success then
+        warn("Error in autoOperateGenerators:", error)
+    end
+end
+
+-- Run the script
+safeAutoOperate()
