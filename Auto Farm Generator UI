@@ -1,91 +1,109 @@
---// Written by SpookzWasHere
--- Create UI Elements
+--// Written By SpookzWasHere
+-- Create main GUI elements
 local ScreenGui = Instance.new("ScreenGui")
 local MainFrame = Instance.new("Frame")
-local UICorner = Instance.new("UICorner")
 local Title = Instance.new("TextLabel")
-local ToggleButton = Instance.new("TextButton")
-local UICorner_2 = Instance.new("UICorner")
+local ExecuteButton = Instance.new("TextButton")
 local StatusLabel = Instance.new("TextLabel")
-local UIGradient = Instance.new("UIGradient")
-local closeButton = Instance.new("TextButton")
-local UICorner_3 = Instance.new("UICorner")
+local MinimizeButton = Instance.new("TextButton")
+local UserInfoLabel = Instance.new("TextLabel")
 
--- UI Properties
-ScreenGui.Name = "AutoFarmGUI"
+-- Variables
+local isRunning = false
+local isMinimized = false
+local originalSize = UDim2.new(0, 250, 0, 170)
+local minimizedSize = UDim2.new(0, 250, 0, 30)
+
+-- GUI Properties
+ScreenGui.Name = "GeneratorHaxGui"
 ScreenGui.Parent = game:GetService("CoreGui")
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-ScreenGui.ResetOnSpawn = false
 
 MainFrame.Name = "MainFrame"
 MainFrame.Parent = ScreenGui
 MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-MainFrame.Position = UDim2.new(0.5, -125, 0.5, -75)
-MainFrame.Size = UDim2.new(0, 250, 0, 150)
+MainFrame.BorderColor3 = Color3.fromRGB(0, 255, 0)
+MainFrame.Position = UDim2.new(0.5, -125, 0.5, -85)
+MainFrame.Size = originalSize
 MainFrame.Active = true
 MainFrame.Draggable = true
 
-UICorner.Parent = MainFrame
-UICorner.CornerRadius = UDim.new(0, 10)
-
 Title.Name = "Title"
 Title.Parent = MainFrame
-Title.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-Title.BackgroundTransparency = 1.000
-Title.Position = UDim2.new(0, 0, 0, 10)
-Title.Size = UDim2.new(1, 0, 0, 30)
-Title.Font = Enum.Font.GothamBold
-Title.Text = "Auto Farm Generator"
-Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-Title.TextSize = 18.000
+Title.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+Title.BorderColor3 = Color3.fromRGB(0, 255, 0)
+Title.Size = UDim2.new(1, -25, 0, 30)
+Title.Font = Enum.Font.Code
+Title.Text = "Generator Hax v1.3"
+Title.TextColor3 = Color3.fromRGB(0, 255, 0)
+Title.TextSize = 16.000
 
-ToggleButton.Name = "ToggleButton"
-ToggleButton.Parent = MainFrame
-ToggleButton.BackgroundColor3 = Color3.fromRGB(147, 112, 219)
-ToggleButton.Position = UDim2.new(0.5, -60, 0.5, -15)
-ToggleButton.Size = UDim2.new(0, 120, 0, 30)
-ToggleButton.Font = Enum.Font.GothamSemibold
-ToggleButton.Text = "ENABLED"
-ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-ToggleButton.TextSize = 14.000
+UserInfoLabel.Name = "UserInfoLabel"
+UserInfoLabel.Parent = MainFrame
+UserInfoLabel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+UserInfoLabel.BorderColor3 = Color3.fromRGB(0, 255, 0)
+UserInfoLabel.Position = UDim2.new(0, 10, 1, -60)
+UserInfoLabel.Size = UDim2.new(1, -20, 0, 20)
+UserInfoLabel.Font = Enum.Font.Code
+UserInfoLabel.Text = "Made By Sp00kzW4sHere"
+UserInfoLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+UserInfoLabel.TextSize = 10.000
 
-UICorner_2.Parent = ToggleButton
-UICorner_2.CornerRadius = UDim.new(0, 6)
+MinimizeButton.Name = "MinimizeButton"
+MinimizeButton.Parent = MainFrame
+MinimizeButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+MinimizeButton.BorderColor3 = Color3.fromRGB(0, 255, 0)
+MinimizeButton.Position = UDim2.new(1, -25, 0, 0)
+MinimizeButton.Size = UDim2.new(0, 25, 0, 30)
+MinimizeButton.Font = Enum.Font.Code
+MinimizeButton.Text = "-"
+MinimizeButton.TextColor3 = Color3.fromRGB(0, 255, 0)
+MinimizeButton.TextSize = 16.000
+
+ExecuteButton.Name = "ExecuteButton"
+ExecuteButton.Parent = MainFrame
+ExecuteButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+ExecuteButton.BorderColor3 = Color3.fromRGB(0, 255, 0)
+ExecuteButton.Position = UDim2.new(0.5, -60, 0.5, -20)
+ExecuteButton.Size = UDim2.new(0, 120, 0, 40)
+ExecuteButton.Font = Enum.Font.Code
+ExecuteButton.Text = "EXECUTE"
+ExecuteButton.TextColor3 = Color3.fromRGB(0, 255, 0)
+ExecuteButton.TextSize = 14.000
+ExecuteButton.Visible = false
 
 StatusLabel.Name = "StatusLabel"
 StatusLabel.Parent = MainFrame
-StatusLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-StatusLabel.BackgroundTransparency = 1.000
-StatusLabel.Position = UDim2.new(0, 0, 0.8, -10)
-StatusLabel.Size = UDim2.new(1, 0, 0, 20)
-StatusLabel.Font = Enum.Font.GothamMedium
-StatusLabel.Text = "Status: Running"
-StatusLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-StatusLabel.TextSize = 14.000
+StatusLabel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+StatusLabel.BorderColor3 = Color3.fromRGB(0, 255, 0)
+StatusLabel.Position = UDim2.new(0, 10, 1, -35)
+StatusLabel.Size = UDim2.new(1, -20, 0, 25)
+StatusLabel.Font = Enum.Font.Code
+StatusLabel.Text = "Status: Initializing..."
+StatusLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+StatusLabel.TextSize = 12.000
 
-UIGradient.Color = ColorSequence.new{
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(147, 112, 219)),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(138, 43, 226))
-}
-UIGradient.Parent = MainFrame
+-- Create enhanced terminal-style effect
+local function typeWrite(text, speed)
+    speed = speed or 0.02  -- Made faster
+    StatusLabel.Text = ""
+    for i = 1, #text do
+        if not ScreenGui.Parent then break end
+        StatusLabel.Text = StatusLabel.Text .. string.sub(text, i, i)
+        wait(speed)
+    end
+end
 
-closeButton.Name = "closeButton"
-closeButton.Parent = MainFrame
-closeButton.BackgroundColor3 = Color3.fromRGB(147, 112, 219)
-closeButton.Position = UDim2.new(1, -30, 0, 10)
-closeButton.Size = UDim2.new(0, 20, 0, 20)
-closeButton.Font = Enum.Font.GothamBold
-closeButton.Text = "X"
-closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-closeButton.TextSize = 14.000
+-- Create loading animation
+local function loadingDots(text, times)
+    for i = 1, times do
+        if not ScreenGui.Parent then break end
+        StatusLabel.Text = text .. string.rep(".", i % 4)
+        wait(0.2)  -- Made faster
+    end
+end
 
-UICorner_3.Parent = closeButton
-UICorner_3.CornerRadius = UDim.new(0, 4)
-
--- Variables
-local isRunning = true
-
--- Main generator function
+-- Main generator function (Updated with SpookzWasHere's code)
 local function runGenerator()
     while isRunning do
         for i, v in ipairs(game.Workspace.Map.Ingame.Map:GetChildren()) do
@@ -97,7 +115,6 @@ local function runGenerator()
                     local center = true
                     local available = 0
                     
-                    -- Check positions
                     for index, value in ipairs(game.Players:GetChildren()) do
                         if value.Character and value.Character:FindFirstChild("HumanoidRootPart") then
                             if value.Character.HumanoidRootPart.CFrame == v.Positions.Left.CFrame then
@@ -126,7 +143,7 @@ local function runGenerator()
                         end
                         
                         if positiontoUse then
-                            -- Move to generator and work on it
+                            StatusLabel.Text = "Status: Working Generator"
                             game.Players.LocalPlayer.Character.PrimaryPart.CFrame = v.Positions[positiontoUse].CFrame
                             wait(0.2)
                             v.Remotes.RF:InvokeServer("enter")
@@ -144,46 +161,92 @@ local function runGenerator()
                 end
             end
         end
+        StatusLabel.Text = "Status: Searching..."
         wait(1)
     end
+    StatusLabel.Text = "Status: Idle"
 end
 
--- UI Button Functionality
-ToggleButton.MouseButton1Click:Connect(function()
-    isRunning = not isRunning
-    if isRunning then
-        ToggleButton.Text = "ENABLED"
-        ToggleButton.BackgroundColor3 = Color3.fromRGB(147, 112, 219)
-        StatusLabel.Text = "Status: Running"
-        spawn(runGenerator)
+-- Minimize/Maximize function
+MinimizeButton.MouseButton1Click:Connect(function()
+    isMinimized = not isMinimized
+    if isMinimized then
+        MainFrame.Size = minimizedSize
+        ExecuteButton.Visible = false
+        StatusLabel.Visible = false
+        UserInfoLabel.Visible = false
+        MinimizeButton.Text = "+"
     else
-        ToggleButton.Text = "DISABLED"
-        ToggleButton.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
-        StatusLabel.Text = "Status: Stopped"
+        MainFrame.Size = originalSize
+        ExecuteButton.Visible = true
+        StatusLabel.Visible = true
+        UserInfoLabel.Visible = true
+        MinimizeButton.Text = "-"
     end
 end)
 
-closeButton.MouseButton1Click:Connect(function()
-    ScreenGui:Destroy()
-    isRunning = false
+-- Button click handler
+ExecuteButton.MouseButton1Click:Connect(function()
+    isRunning = not isRunning
+    if isRunning then
+        ExecuteButton.Text = "STOP"
+        ExecuteButton.BackgroundColor3 = Color3.fromRGB(40, 0, 0)
+        spawn(runGenerator)
+    else
+        ExecuteButton.Text = "EXECUTE"
+        ExecuteButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    end
 end)
 
--- Start the generator function
-spawn(runGenerator)
+-- Faster startup sequence
+spawn(function()
+    local sequence = {
+        {text = "Initializing h4x module", speed = 0.02, wait = 0.5},
+        {text = "Injecting h4x components", speed = 0.02, wait = 0.5},
+        {text = "Bypassing security", speed = 0.02, wait = 0.5},
+        {text = "Overriding system", speed = 0.02, wait = 0.5},
+        {text = "Loading framework", speed = 0.02, wait = 0.5},
+        {text = "[!] System compromised", speed = 0.02, wait = 0.5},
+        {text = "Ready to execute", speed = 0.02, wait = 0}
+    }
+    
+    for _, step in ipairs(sequence) do
+        typeWrite(step.text, step.speed)
+        if step.wait > 0 then
+            loadingDots(step.text, math.floor(step.wait / 0.2))
+        end
+    end
+    
+    wait(0.3)
+    ExecuteButton.Visible = true
+    StatusLabel.Text = "Status: Ready to hack..."
+    
+    -- Quick button flash
+    ExecuteButton.BackgroundColor3 = Color3.fromRGB(0, 40, 0)
+    wait(0.1)
+    ExecuteButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+end)
 
--- Keybind functionality
+-- Error handling
+game.Players.LocalPlayer.CharacterAdded:Connect(function(char)
+    wait(1)
+    if isRunning then
+        StatusLabel.Text = "Status: Character Respawned"
+        wait(2)
+    end
+end)
+
+-- Key press toggle (optional)
 game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessed)
-    if input.KeyCode == Enum.KeyCode.P then
+    if input.KeyCode == Enum.KeyCode.P then  -- Press 'P' to toggle the script
         isRunning = not isRunning
         if isRunning then
-            ToggleButton.Text = "ENABLED"
-            ToggleButton.BackgroundColor3 = Color3.fromRGB(147, 112, 219)
-            StatusLabel.Text = "Status: Running"
+            ExecuteButton.Text = "STOP"
+            ExecuteButton.BackgroundColor3 = Color3.fromRGB(40, 0, 0)
             spawn(runGenerator)
         else
-            ToggleButton.Text = "DISABLED"
-            ToggleButton.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
-            StatusLabel.Text = "Status: Stopped"
+            ExecuteButton.Text = "EXECUTE"
+            ExecuteButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
         end
     end
 end)
