@@ -50,7 +50,7 @@ local function runGenerator()
                             
                             for i = 1, 4 do
                                 if not isRunning then break end
-                                wait(1.5)
+                                wait(1.7)  -- Changed from 1.5 to 1.7 seconds
                                 v.Remotes.RE:FireServer()
                             end
                             
