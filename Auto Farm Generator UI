@@ -1,0 +1,128 @@
+-- UI Library and Configuration
+local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/bloodball/-back-ups-for-libs/main/Kinix"))()
+local mainWindow = library.CreateLib("Auto Farm Generator", "Midnight")
+
+-- Create Main Tab
+local mainTab = mainWindow:NewTab("Main")
+local mainSection = mainTab:NewSection("Generator Controls")
+
+-- Variables
+local isRunning = false
+local originalScript = false
+
+-- Status Label Update Function
+local statusLabel = mainSection:NewLabel("Status: Stopped")
+
+-- Toggle Button
+mainSection:NewToggle("Toggle Auto Farm", "Turns the auto farm on/off", function(state)
+    isRunning = state
+    statusLabel:UpdateLabel("Status: " .. (isRunning and "Running" or "Stopped"))
+    
+    if state then
+        -- Main generator function
+        spawn(function()
+            while isRunning do
+                for i, v in ipairs(game.Workspace.Map.Ingame.Map:GetChildren()) do
+                    if not isRunning then break end
+                    if v.Name == "Generator" then
+                        if v.Progress.Value ~= 4 then
+                            local left = true
+                            local right = true
+                            local center = true
+                            local available = 0
+                            
+                            -- Check positions
+                            for index, value in ipairs(game.Players:GetChildren()) do
+                                if value.Character and value.Character:FindFirstChild("HumanoidRootPart") then
+                                    if value.Character.HumanoidRootPart.CFrame == v.Positions.Left.CFrame then
+                                        available += 1
+                                        left = false
+                                    end
+                                    if value.Character.HumanoidRootPart.CFrame == v.Positions.Right.CFrame then
+                                        available += 1
+                                        right = false
+                                    end
+                                    if value.Character.HumanoidRootPart.CFrame == v.Positions.Center.CFrame then
+                                        available += 1
+                                        center = false
+                                    end
+                                end
+                            end
+                            
+                            if available < 3 then
+                                local positiontoUse
+                                if left then
+                                    positiontoUse = "Left"
+                                elseif right then
+                                    positiontoUse = "Right"
+                                elseif center then
+                                    positiontoUse = "Center"
+                                end
+                                
+                                if positiontoUse then
+                                    -- Move to generator and work on it
+                                    game.Players.LocalPlayer.Character.PrimaryPart.CFrame = v.Positions[positiontoUse].CFrame
+                                    wait(0.2)
+                                    v.Remotes.RF:InvokeServer("enter")
+                                    
+                                    for i = 1, 4 do
+                                        if not isRunning then break end
+                                        wait(1.7)
+                                        v.Remotes.RE:FireServer()
+                                    end
+                                    
+                                    wait(0.2)
+                                    v.Remotes.RF:InvokeServer("leave")
+                                end
+                            end
+                        end
+                    end
+                end
+                wait(1)
+            end
+        end)
+    end
+end)
+
+-- Settings Section
+local settingsSection = mainTab:NewSection("Settings")
+
+-- Delay Slider
+settingsSection:NewSlider("Generator Delay", "Adjust the delay between generator actions", 30, 15, function(value)
+    wait_time = value / 10
+end)
+
+-- Information Section
+local infoSection = mainTab:NewSection("Information")
+
+-- Credits
+infoSection:NewLabel("Created by SpookzWasHere")
+infoSection:NewLabel("UI by JakeScripterz")
+
+-- Keybinds Section
+local keybindsSection = mainTab:NewSection("Keybinds")
+
+-- Toggle Keybind
+keybindsSection:NewKeybind("Toggle UI", "Hide/Show the UI", Enum.KeyCode.RightControl, function()
+    library:ToggleUI()
+end)
+
+-- Apply custom colors
+local colors = {
+    Background = Color3.fromRGB(25, 25, 25),
+    Section = Color3.fromRGB(30, 30, 30),
+    Text = Color3.fromRGB(255, 255, 255),
+    Border = Color3.fromRGB(147, 112, 219),
+    Accent = Color3.fromRGB(138, 43, 226)
+}
+
+-- Initialize protection for different executors
+if syn then
+    syn.protect_gui(mainWindow)
+elseif protect_gui then
+    protect_gui(mainWindow)
+elseif gethui then
+    mainWindow.Parent = gethui()
+else
+    mainWindow.Parent = game:GetService("CoreGui")
+end
