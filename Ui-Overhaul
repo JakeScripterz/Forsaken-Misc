@@ -1,1180 +1,1055 @@
 --[[
-    Title: Complete Hacker Interface v2.0
+    Title: C00lgui Ultimate
     Author: JakeScripterz
-    Last Modified: 2025-05-04 12:11:46 UTC
-    Description: Advanced hacking interface with executor support
-    Username: JakeScripterz
+    Last Modified: 2025-05-04 12:26:08 UTC
 ]]
-
--- Protection Check
-if getgenv().HackerInterfaceLoaded then
-    return
-end
-getgenv().HackerInterfaceLoaded = true
 
 -- Services
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
+local TeleportService = game:GetService("TeleportService")
+local HttpService = game:GetService("HttpService")
+local MarketplaceService = game:GetService("MarketplaceService")
 
--- Constants
-local ACCENT_COLOR = Color3.fromRGB(255, 0, 0)
-local BG_COLOR = Color3.fromRGB(20, 20, 20)
-local CURRENT_USER = (game:GetService("Players").LocalPlayer.Name or "User")
-local VERSION = "v8"
+-- Create Main GUI
+local gui = Instance.new("ScreenGui")
+gui.Name = "c00lguiUltimate"
+gui.ResetOnSpawn = false
 
--- Utility Functions
-local function safeWait(duration)
-    local start = tick()
-    while tick() - start < duration do
-        RunService.Heartbeat:Wait()
-    end
-end
-
-local function createButton(parent, text, position)
-    local button = Instance.new("TextButton")
-    button.Name = text .. "Button"
-    button.Parent = parent
-    button.BackgroundColor3 = BG_COLOR
-    button.BorderColor3 = ACCENT_COLOR
-    button.Position = position
-    button.Size = UDim2.new(0.9, 0, 0.08, 0)
-    button.Font = Enum.Font.Code
-    button.Text = text
-    button.TextColor3 = ACCENT_COLOR
-    button.TextSize = 14
-    button.AutoButtonColor = false
-    
-    -- Hover Effect
-    button.MouseEnter:Connect(function()
-        game:GetService("TweenService"):Create(button, TweenInfo.new(0.3), {
-            BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-        }):Play()
-    end)
-    
-    button.MouseLeave:Connect(function()
-        game:GetService("TweenService"):Create(button, TweenInfo.new(0.3), {
-            BackgroundColor3 = BG_COLOR
-        }):Play()
-    end)
-    
-    return button
-end
-
-local function createInput(parent, placeholder, position)
-    local input = Instance.new("TextBox")
-    input.Name = placeholder .. "Input"
-    input.Parent = parent
-    input.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    input.BorderColor3 = ACCENT_COLOR
-    input.Position = position
-    input.Size = UDim2.new(0.9, 0, 0.08, 0)
-    input.Font = Enum.Font.Code
-    input.PlaceholderText = placeholder
-    input.Text = ""
-    input.TextColor3 = ACCENT_COLOR
-    input.TextSize = 14
-    return input
-end
-
-local function createStatus(parent, position)
-    local status = Instance.new("TextLabel")
-    status.Name = "StatusLabel"
-    status.Parent = parent
-    status.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    status.BorderColor3 = ACCENT_COLOR
-    status.Position = position
-    status.Size = UDim2.new(0.9, 0, 0.08, 0)
-    status.Font = Enum.Font.Code
-    status.Text = "Status: Ready"
-    status.TextColor3 = ACCENT_COLOR
-    status.TextSize = 14
-    return status
-end
-
--- Create GUI
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "HackerInterface"
-ScreenGui.ResetOnSpawn = false
-ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-
--- Try different methods to parent the ScreenGui based on executor
+-- Try different methods to parent the GUI based on executor
 local success, err = pcall(function()
     if syn then -- Synapse X
-        syn.protect_gui(ScreenGui)
-        ScreenGui.Parent = game:GetService("CoreGui")
-    elseif gethui then -- Some other executors
-        ScreenGui.Parent = gethui()
-    elseif game:GetService("CoreGui"):FindFirstChild("RobloxGui") then -- Fallback
-        ScreenGui.Parent = game:GetService("CoreGui").RobloxGui
+        syn.protect_gui(gui)
+        gui.Parent = game:GetService("CoreGui")
+    elseif gethui then -- Other executors
+        gui.Parent = gethui()
     else
-        ScreenGui.Parent = game:GetService("CoreGui")
+        gui.Parent = game:GetService("CoreGui")
     end
 end)
 
 if not success then
-    ScreenGui.Parent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
+    gui.Parent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
 end
 
--- Loading Screen
-local LoadingFrame = Instance.new("Frame")
-LoadingFrame.Name = "LoadingFrame"
-LoadingFrame.Parent = ScreenGui
-LoadingFrame.BackgroundColor3 = BG_COLOR
-LoadingFrame.BorderColor3 = ACCENT_COLOR
-LoadingFrame.Position = UDim2.new(0.5, -200, 0.5, -150)
-LoadingFrame.Size = UDim2.new(0, 400, 0, 300)
-LoadingFrame.ZIndex = 1000
+-- Toggle Button
+local toggleBtn = Instance.new("TextButton")
+toggleBtn.Name = "ToggleBtn"
+toggleBtn.Parent = gui
+toggleBtn.BackgroundColor3 = Color3.new(0, 0, 0)
+toggleBtn.BorderColor3 = Color3.new(1, 0, 0)
+toggleBtn.BorderSizePixel = 2
+toggleBtn.Size = UDim2.new(0, 50, 0, 50)
+toggleBtn.Position = UDim2.new(0, 10, 0.5, -25)
+toggleBtn.Font = Enum.Font.SourceSansBold
+toggleBtn.Text = "☰"
+toggleBtn.TextColor3 = Color3.new(1, 0, 0)
+toggleBtn.TextScaled = true
+toggleBtn.ZIndex = 10
 
-local LoadingTitle = Instance.new("TextLabel")
-LoadingTitle.Name = "LoadingTitle"
-LoadingTitle.Parent = LoadingFrame
-LoadingTitle.BackgroundTransparency = 1
-LoadingTitle.Position = UDim2.new(0, 0, 0, 20)
-LoadingTitle.Size = UDim2.new(1, 0, 0, 30)
-LoadingTitle.Font = Enum.Font.Code
-LoadingTitle.Text = "C00lgui " .. VERSION
-LoadingTitle.TextColor3 = ACCENT_COLOR
-LoadingTitle.TextSize = 24
-LoadingTitle.ZIndex = 1001
+-- Dragging functionality for toggle button
+local dragging, dragInput, dragStart, startPos
+local function updateInput(input)
+    local delta = input.Position - dragStart
+    toggleBtn.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+end
 
-local LoadingUser = Instance.new("TextLabel")
-LoadingUser.Name = "LoadingUser"
-LoadingUser.Parent = LoadingFrame
-LoadingUser.BackgroundTransparency = 1
-LoadingUser.Position = UDim2.new(0, 10, 0, 60)
-LoadingUser.Size = UDim2.new(1, -20, 0, 20)
-LoadingUser.Font = Enum.Font.Code
-LoadingUser.Text = "USER: " .. CURRENT_USER
-LoadingUser.TextColor3 = ACCENT_COLOR
-LoadingUser.TextSize = 14
-LoadingUser.TextXAlignment = Enum.TextXAlignment.Left
-LoadingUser.ZIndex = 1000
+toggleBtn.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = toggleBtn.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then dragging = false end
+        end)
+    end
+end)
 
-local LoadingStatus = Instance.new("TextLabel")
-LoadingStatus.Name = "LoadingStatus"
-LoadingStatus.Parent = LoadingFrame
-LoadingStatus.BackgroundTransparency = 1
-LoadingStatus.Position = UDim2.new(0, 10, 0, 100)
-LoadingStatus.Size = UDim2.new(1, -20, 0, 20)
-LoadingStatus.Font = Enum.Font.Code
-LoadingStatus.Text = "Initializing..."
-LoadingStatus.TextColor3 = ACCENT_COLOR
-LoadingStatus.TextSize = 14
-LoadingStatus.TextXAlignment = Enum.TextXAlignment.Left
-LoadingStatus.ZIndex = 1001
+toggleBtn.InputChanged:Connect(function(input)
+    if (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) and dragging then
+        dragInput = input
+    end
+end)
 
-local LoadingBar = Instance.new("Frame")
-LoadingBar.Name = "LoadingBar"
-LoadingBar.Parent = LoadingFrame
-LoadingBar.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-LoadingBar.BorderColor3 = ACCENT_COLOR
-LoadingBar.Position = UDim2.new(0, 10, 0, 130)
-LoadingBar.Size = UDim2.new(1, -20, 0, 20)
-LoadingBar.ZIndex = 1001
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then updateInput(input) end
+end)
+-- Main Frame
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Parent = gui
+mainFrame.BackgroundColor3 = Color3.new(0, 0, 0)
+mainFrame.BorderColor3 = Color3.new(1, 0, 0)
+mainFrame.BorderSizePixel = 2
+mainFrame.Size = UDim2.new(0.4, 0, 0.65, 0)
+mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+mainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+mainFrame.Visible = false
 
-local LoadingFill = Instance.new("Frame")
-LoadingFill.Name = "LoadingFill"
-LoadingFill.Parent = LoadingBar
-LoadingFill.BackgroundColor3 = ACCENT_COLOR
-LoadingFill.BorderSizePixel = 0
-LoadingFill.Size = UDim2.new(0, 0, 1, 0)
-LoadingFill.ZIndex = 1002
+toggleBtn.MouseButton1Click:Connect(function()
+    mainFrame.Visible = not mainFrame.Visible
+end)
 
--- Main Interface
-local MainFrame = Instance.new("Frame")
-MainFrame.Name = "MainFrame"
-MainFrame.Parent = ScreenGui
-MainFrame.BackgroundColor3 = BG_COLOR
-MainFrame.BorderColor3 = ACCENT_COLOR
-MainFrame.Position = UDim2.new(0.5, -200, 0.5, -150)
-MainFrame.Size = UDim2.new(0, 400, 0, 300)
-MainFrame.Visible = false
-MainFrame.Active = true
-MainFrame.Draggable = true
--- Scanner Effect & UI Elements
-local ScannerEffect = Instance.new("Frame")
-ScannerEffect.Name = "ScannerEffect"
-ScannerEffect.Parent = MainFrame
-ScannerEffect.BackgroundColor3 = ACCENT_COLOR
-ScannerEffect.BackgroundTransparency = 0.9
-ScannerEffect.BorderSizePixel = 0
-ScannerEffect.Size = UDim2.new(1, 0, 0, 2)
-ScannerEffect.ZIndex = 2
+-- Navigation Frame
+local navFrame = Instance.new("Frame")
+navFrame.Name = "NavFrame"
+navFrame.Parent = mainFrame
+navFrame.BackgroundColor3 = Color3.new(0, 0, 0)
+navFrame.BorderColor3 = Color3.new(1, 0, 0)
+navFrame.Size = UDim2.new(1, 0, 0.15, 0)
 
--- Title Bar
-local TitleBar = Instance.new("Frame")
-TitleBar.Name = "TitleBar"
-TitleBar.Parent = MainFrame
-TitleBar.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-TitleBar.BorderColor3 = ACCENT_COLOR
-TitleBar.Size = UDim2.new(1, 0, 0, 30)
-
-local Title = Instance.new("TextLabel")
-Title.Name = "Title"
-Title.Parent = TitleBar
-Title.BackgroundTransparency = 1
-Title.Size = UDim2.new(1, -25, 1, 0)
-Title.Font = Enum.Font.Code
-Title.Text = "H4CKER INTERFACE " .. VERSION
-Title.TextColor3 = ACCENT_COLOR
-Title.TextSize = 16
-
--- Close and Minimize Buttons
-local CloseBtn = Instance.new("TextButton")
-CloseBtn.Name = "CloseBtn"
-CloseBtn.Parent = TitleBar
-CloseBtn.BackgroundColor3 = BG_COLOR
-CloseBtn.BorderColor3 = ACCENT_COLOR
-CloseBtn.Position = UDim2.new(1, -25, 0, 0)
-CloseBtn.Size = UDim2.new(0, 25, 1, 0)
-CloseBtn.Font = Enum.Font.Code
-CloseBtn.Text = "×"
-CloseBtn.TextColor3 = ACCENT_COLOR
-CloseBtn.TextSize = 20
-
--- Tab System
-local TabContainer = Instance.new("Frame")
-TabContainer.Name = "TabContainer"
-TabContainer.Parent = MainFrame
-TabContainer.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-TabContainer.BorderColor3 = ACCENT_COLOR
-TabContainer.Position = UDim2.new(0, 10, 0, 40)
-TabContainer.Size = UDim2.new(1, -20, 0, 30)
-
-local ContentContainer = Instance.new("Frame")
-ContentContainer.Name = "ContentContainer"
-ContentContainer.Parent = MainFrame
-ContentContainer.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-ContentContainer.BorderColor3 = ACCENT_COLOR
-ContentContainer.Position = UDim2.new(0, 10, 0, 80)
-ContentContainer.Size = UDim2.new(1, -20, 1, -90)
-
--- Tab Setup
-local tabs = {
-    {name = "Aimbot", color = ACCENT_COLOR},
-    {name = "Orbit", color = ACCENT_COLOR},
-    {name = "ESP", color = ACCENT_COLOR},
-    {name = "Trip", color = ACCENT_COLOR},
-    {name = "Misc", color = ACCENT_COLOR}
+-- Navigation Buttons
+local buttons = {
+    {Name = "Aimbot", Position = 0},
+    {Name = "Orbit", Position = 0.1666},
+    {Name = "Tripmine", Position = 0.3332},
+    {Name = "Spookz", Position = 0.4998},
+    {Name = "Teleport", Position = 0.6664},
+    {Name = "Useless", Position = 0.833}
 }
 
-local pages = {}
-local buttons = {}
-
--- Create Tabs
-for index, tab in ipairs(tabs) do
+for _, btn in ipairs(buttons) do
     local button = Instance.new("TextButton")
-    button.Name = tab.name .. "Tab"
-    button.Parent = TabContainer
-    button.BackgroundColor3 = BG_COLOR
-    button.BorderColor3 = tab.color
-    button.Position = UDim2.new((index-1) * 0.2, 0, 0, 0)
-    button.Size = UDim2.new(0.2, -2, 1, 0)
-    button.Font = Enum.Font.Code
-    button.Text = tab.name
-    button.TextColor3 = tab.color
-    button.TextSize = 14
-    button.AutoButtonColor = false
-    buttons[tab.name] = button
-    
-    local page = Instance.new("ScrollingFrame")
-    page.Name = tab.name .. "Page"
-    page.Parent = ContentContainer
+    button.Name = btn.Name.."Btn"
+    button.Parent = navFrame
+    button.BackgroundColor3 = Color3.new(0, 0, 0)
+    button.BorderColor3 = Color3.new(1, 0, 0)
+    button.Size = UDim2.new(0.1666, 0, 1, 0)
+    button.Position = UDim2.new(btn.Position, 0, 0, 0)
+    button.Font = Enum.Font.SourceSansBold
+    button.Text = btn.Name
+    button.TextColor3 = Color3.new(1, 0, 0)
+    button.TextScaled = true
+end
+
+-- Pages Setup
+local pages = {
+    AimbotPage = Instance.new("Frame"),
+    OrbitPage = Instance.new("Frame"),
+    TripminePage = Instance.new("Frame"),
+    SpookzPage = Instance.new("Frame"),
+    TeleportPage = Instance.new("Frame"),
+    UselessPage = Instance.new("Frame")
+}
+
+for name, page in pairs(pages) do
+    page.Name = name
+    page.Parent = mainFrame
     page.BackgroundTransparency = 1
-    page.BorderSizePixel = 0
-    page.Size = UDim2.new(1, 0, 1, 0)
-    page.CanvasSize = UDim2.new(0, 0, 2, 0)
-    page.ScrollBarThickness = 4
-    page.ScrollBarImageColor3 = ACCENT_COLOR
+    page.Size = UDim2.new(1, 0, 0.85, 0)
+    page.Position = UDim2.new(0, 0, 0.15, 0)
     page.Visible = false
-    pages[tab.name] = page
-end
--- Aimbot Implementation
-local function setupAimbot()
-    local page = pages["Aimbot"]
-    local targetInput = createInput(page, "Enter target username (optional)", UDim2.new(0.05, 0, 0.05, 0))
-    local toggleBtn = createButton(page, "AIMBOT: OFF", UDim2.new(0.05, 0, 0.15, 0))
-    local status = createStatus(page, UDim2.new(0.05, 0, 0.25, 0))
-    
-    -- FOV Slider
-    local fovSlider = Instance.new("Frame")
-    fovSlider.Name = "FOVSlider"
-    fovSlider.Parent = page
-    fovSlider.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    fovSlider.BorderColor3 = ACCENT_COLOR
-    fovSlider.Position = UDim2.new(0.05, 0, 0.35, 0)
-    fovSlider.Size = UDim2.new(0.9, 0, 0.05, 0)
-    
-    local fovKnob = Instance.new("TextButton")
-    fovKnob.Name = "FOVKnob"
-    fovKnob.Parent = fovSlider
-    fovKnob.BackgroundColor3 = ACCENT_COLOR
-    fovKnob.Size = UDim2.new(0.1, 0, 1, 0)
-    fovKnob.Text = ""
-    
-    local aimbotEnabled = false
-    local currentTarget = nil
-    local aimbotConnection = nil
-    local fov = 90
-    
-    -- Aimbot logic here (continued in next part)
-    -- Continuing Aimbot Implementation
-    local function getClosestPlayer()
-        local localPlayer = Players.LocalPlayer
-        local localCharacter = localPlayer.Character
-        if not localCharacter then return nil end
-        
-        local localHead = localCharacter:FindFirstChild("Head")
-        if not localHead then return nil end
-        
-        local closestPlayer = nil
-        local closestDistance = math.huge
-        local closestAngle = fov
-        
-        for _, player in pairs(Players:GetPlayers()) do
-            if player ~= localPlayer and player.Character then
-                local character = player.Character
-                local humanoid = character:FindFirstChildOfClass("Humanoid")
-                local head = character:FindFirstChild("Head")
-                
-                if humanoid and humanoid.Health > 0 and head then
-                    local distance = (head.Position - localHead.Position).Magnitude
-                    local angle = math.deg(math.acos(localHead.CFrame.LookVector:Dot((head.Position - localHead.Position).Unit)))
-                    
-                    if angle < closestAngle and distance < closestDistance then
-                        closestDistance = distance
-                        closestAngle = angle
-                        closestPlayer = player
-                    end
-                end
-            end
-        end
-        
-        return closestPlayer
-    end
-    
-    local function updateAimbot()
-        if not aimbotEnabled then return end
-        
-        local targetPlayer = currentTarget
-        if not targetPlayer or not targetPlayer.Character then
-            targetPlayer = getClosestPlayer()
-            currentTarget = targetPlayer
-        end
-        
-        if targetPlayer and targetPlayer.Character then
-            local character = targetPlayer.Character
-            local head = character:FindFirstChild("Head")
-            local humanoid = character:FindFirstChildOfClass("Humanoid")
-            
-            if head and humanoid and humanoid.Health > 0 then
-                local localCharacter = Players.LocalPlayer.Character
-                if localCharacter then
-                    local humanoidRootPart = localCharacter:FindFirstChild("HumanoidRootPart")
-                    if humanoidRootPart then
-                        local direction = (head.Position - humanoidRootPart.Position).Unit
-                        humanoidRootPart.CFrame = CFrame.new(humanoidRootPart.Position, humanoidRootPart.Position + direction)
-                    end
-                end
-            else
-                currentTarget = nil
-            end
-        end
-    end
-    
-    -- FOV Slider functionality
-    local dragging = false
-    local dragStart = nil
-    local startPos = nil
-    
-    fovKnob.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = true
-            dragStart = input.Position
-            startPos = fovKnob.Position
-        end
-    end)
-    
-    UserInputService.InputChanged:Connect(function(input)
-        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-            local delta = input.Position - dragStart
-            local xPos = math.clamp(startPos.X.Scale + delta.X / fovSlider.AbsoluteSize.X, 0, 0.9)
-            fovKnob.Position = UDim2.new(xPos, 0, 0, 0)
-            fov = 30 + (xPos * 150) -- FOV range: 30-180
-            status.Text = "FOV: " .. math.floor(fov) .. "°"
-        end
-    end)
-    
-    UserInputService.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = false
-        end
-    end)
-    
-    -- Toggle button functionality
-    toggleBtn.MouseButton1Click:Connect(function()
-        aimbotEnabled = not aimbotEnabled
-        
-        if aimbotEnabled then
-            toggleBtn.Text = "AIMBOT: ON"
-            toggleBtn.TextColor3 = Color3.fromRGB(0, 255, 0)
-            
-            local targetName = targetInput.Text
-            if targetName ~= "" then
-                currentTarget = Players:FindFirstChild(targetName)
-                if currentTarget then
-                    status.Text = "Status: Targeting " .. targetName
-                else
-                    status.Text = "Status: Player not found, using closest"
-                    currentTarget = getClosestPlayer()
-                end
-            else
-                currentTarget = getClosestPlayer()
-            end
-            
-            aimbotConnection = RunService.Heartbeat:Connect(updateAimbot)
-        else
-            toggleBtn.Text = "AIMBOT: OFF"
-            toggleBtn.TextColor3 = ACCENT_COLOR
-            status.Text = "Status: Aimbot Disabled"
-            currentTarget = nil
-            
-            if aimbotConnection then
-                aimbotConnection:Disconnect()
-                aimbotConnection = nil
-            end
-        end
-    end)
-end
--- Orbit Implementation
-local function setupOrbit()
-    local page = pages["Orbit"]
-    
-    local targetInput = createInput(page, "Enter target username", UDim2.new(0.05, 0, 0.05, 0))
-    local toggleBtn = createButton(page, "ORBIT: OFF", UDim2.new(0.05, 0, 0.15, 0))
-    local status = createStatus(page, UDim2.new(0.05, 0, 0.25, 0))
-    
-    -- Orbit Controls
-    local distanceSlider = Instance.new("Frame")
-    distanceSlider.Name = "DistanceSlider"
-    distanceSlider.Parent = page
-    distanceSlider.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    distanceSlider.BorderColor3 = ACCENT_COLOR
-    distanceSlider.Position = UDim2.new(0.05, 0, 0.35, 0)
-    distanceSlider.Size = UDim2.new(0.9, 0, 0.05, 0)
-    
-    local distanceKnob = Instance.new("TextButton")
-    distanceKnob.Name = "DistanceKnob"
-    distanceKnob.Parent = distanceSlider
-    distanceKnob.BackgroundColor3 = ACCENT_COLOR
-    distanceKnob.Size = UDim2.new(0.1, 0, 1, 0)
-    distanceKnob.Text = ""
-    
-    local speedSlider = Instance.new("Frame")
-    speedSlider.Name = "SpeedSlider"
-    speedSlider.Parent = page
-    speedSlider.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    speedSlider.BorderColor3 = ACCENT_COLOR
-    speedSlider.Position = UDim2.new(0.05, 0, 0.45, 0)
-    speedSlider.Size = UDim2.new(0.9, 0, 0.05, 0)
-    
-    local speedKnob = Instance.new("TextButton")
-    speedKnob.Name = "SpeedKnob"
-    speedKnob.Parent = speedSlider
-    speedKnob.BackgroundColor3 = ACCENT_COLOR
-    speedKnob.Size = UDim2.new(0.1, 0, 1, 0)
-    speedKnob.Text = ""
-    
-    local orbitEnabled = false
-    local orbitTarget = nil
-    local orbitConnection = nil
-    local orbitAngle = 0
-    local orbitDistance = 5
-    local orbitSpeed = 0.1
-    
-    -- Orbit logic continues in next part...
-    -- Continuing Orbit Implementation
-    local function updateOrbit()
-        if not orbitEnabled or not orbitTarget then return end
-        
-        local targetChar = orbitTarget.Character
-        local localChar = Players.LocalPlayer.Character
-        
-        if targetChar and localChar then
-            local targetRoot = targetChar:FindFirstChild("HumanoidRootPart")
-            local localRoot = localChar:FindFirstChild("HumanoidRootPart")
-            
-            if targetRoot and localRoot then
-                orbitAngle = orbitAngle + orbitSpeed
-                if orbitAngle > 2 * math.pi then
-                    orbitAngle = 0
-                end
-                
-                local offset = Vector3.new(
-                    math.cos(orbitAngle) * orbitDistance,
-                    0,
-                    math.sin(orbitAngle) * orbitDistance
-                )
-                
-                local targetPos = targetRoot.Position + offset
-                localRoot.CFrame = CFrame.new(targetPos, targetRoot.Position)
-            end
-        end
-    end
-    
-    -- Slider functionality for orbit controls
-    local function setupSlider(slider, knob, callback)
-        local dragging = false
-        local dragStart = nil
-        local startPos = nil
-        
-        knob.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                dragging = true
-                dragStart = input.Position
-                startPos = knob.Position
-            end
-        end)
-        
-        UserInputService.InputChanged:Connect(function(input)
-            if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-                local delta = input.Position - dragStart
-                local xPos = math.clamp(startPos.X.Scale + delta.X / slider.AbsoluteSize.X, 0, 0.9)
-                knob.Position = UDim2.new(xPos, 0, 0, 0)
-                callback(xPos)
-            end
-        end)
-        
-        UserInputService.InputEnded:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                dragging = false
-            end
-        end)
-    end
-    
-    setupSlider(distanceSlider, distanceKnob, function(value)
-        orbitDistance = 2 + (value * 18) -- Range: 2-20
-        status.Text = "Distance: " .. string.format("%.1f", orbitDistance)
-    end)
-    
-    setupSlider(speedSlider, speedKnob, function(value)
-        orbitSpeed = 0.05 + (value * 0.45) -- Range: 0.05-0.5
-        status.Text = "Speed: " .. string.format("%.2f", orbitSpeed)
-    end)
-    
-    toggleBtn.MouseButton1Click:Connect(function()
-        orbitEnabled = not orbitEnabled
-        
-        if orbitEnabled then
-            local targetName = targetInput.Text
-            if targetName ~= "" then
-                orbitTarget = Players:FindFirstChild(targetName)
-                if orbitTarget then
-                    toggleBtn.Text = "ORBIT: ON"
-                    toggleBtn.TextColor3 = Color3.fromRGB(0, 255, 0)
-                    status.Text = "Status: Orbiting " .. targetName
-                    orbitConnection = RunService.Heartbeat:Connect(updateOrbit)
-                else
-                    status.Text = "Status: Player not found!"
-                    orbitEnabled = false
-                end
-            else
-                status.Text = "Status: Enter a username!"
-                orbitEnabled = false
-            end
-        else
-            toggleBtn.Text = "ORBIT: OFF"
-            toggleBtn.TextColor3 = ACCENT_COLOR
-            status.Text = "Status: Orbit Disabled"
-            
-            if orbitConnection then
-                orbitConnection:Disconnect()
-                orbitConnection = nil
-            end
-        end
-    end)
-end
--- ESP Implementation
-local function setupESP()
-    local page = pages["ESP"]
-    
-    local toggleBtn = createButton(page, "ESP: OFF", UDim2.new(0.05, 0, 0.05, 0))
-    local teamCheckbox = createButton(page, "Team ESP: OFF", UDim2.new(0.05, 0, 0.15, 0))
-    local status = createStatus(page, UDim2.new(0.05, 0, 0.25, 0))
-    
-    local espEnabled = false
-    local teamESP = false
-    local espConnection = nil
-    local espObjects = {}
-    
-    local function createESPBox(player)
-        local box = Drawing.new("Square")
-        box.Visible = false
-        box.Color = Color3.fromRGB(255, 0, 0)
-        box.Thickness = 1
-        box.Filled = false
-        box.Transparency = 1
-        
-        local name = Drawing.new("Text")
-        name.Visible = false
-        name.Color = Color3.fromRGB(255, 0, 0)
-        name.Size = 14
-        name.Center = true
-        name.Outline = true
-        
-        return {
-            box = box,
-            name = name,
-            player = player
-        }
-    end
-    
-    local function updateESP()
-        for _, obj in pairs(espObjects) do
-            local character = obj.player.Character
-            if character and character:FindFirstChild("HumanoidRootPart") and character:FindFirstChild("Humanoid") then
-                local humanoid = character:FindFirstChild("Humanoid")
-                local root = character:FindFirstChild("HumanoidRootPart")
-                
-                local screenPos, onScreen = workspace.CurrentCamera:WorldToViewportPoint(root.Position)
-                
-                if onScreen and humanoid.Health > 0 then
-                    local size = Vector2.new(2000 / screenPos.Z, 3000 / screenPos.Z)
-                    local pos = Vector2.new(screenPos.X - size.X / 2, screenPos.Y - size.Y / 2)
-                    
-                    obj.box.Size = size
-                    obj.box.Position = pos
-                    obj.box.Visible = true
-                    
-                    obj.name.Position = Vector2.new(screenPos.X, screenPos.Y - size.Y / 2 - 15)
-                    obj.name.Text = string.format("%s\nHealth: %d", obj.player.Name, humanoid.Health)
-                    obj.name.Visible = true
-                    
-                    if teamESP and obj.player.Team then
-                        obj.box.Color = obj.player.Team.TeamColor.Color
-                        obj.name.Color = obj.player.Team.TeamColor.Color
-                    else
-                        obj.box.Color = Color3.fromRGB(255, 0, 0)
-                        obj.name.Color = Color3.fromRGB(255, 0, 0)
-                    end
-                else
-                    obj.box.Visible = false
-                    obj.name.Visible = false
-                end
-            else
-                obj.box.Visible = false
-                obj.name.Visible = false
-            end
-        end
-    end
-    -- Continuing ESP Implementation
-    local function cleanupESP()
-        for _, obj in pairs(espObjects) do
-            obj.box:Remove()
-            obj.name:Remove()
-        end
-        table.clear(espObjects)
-    end
-    
-    local function setupESPForPlayer(player)
-        if player ~= Players.LocalPlayer then
-            espObjects[player] = createESPBox(player)
-        end
-    end
-    
-    toggleBtn.MouseButton1Click:Connect(function()
-        espEnabled = not espEnabled
-        
-        if espEnabled then
-            toggleBtn.Text = "ESP: ON"
-            toggleBtn.TextColor3 = Color3.fromRGB(0, 255, 0)
-            status.Text = "Status: ESP Enabled"
-            
-            -- Setup ESP for existing players
-            for _, player in ipairs(Players:GetPlayers()) do
-                setupESPForPlayer(player)
-            end
-            
-            -- Connect ESP update
-            espConnection = RunService.RenderStepped:Connect(updateESP)
-            
-            -- Handle new players
-            Players.PlayerAdded:Connect(setupESPForPlayer)
-            
-            -- Handle removing players
-            Players.PlayerRemoving:Connect(function(player)
-                if espObjects[player] then
-                    espObjects[player].box:Remove()
-                    espObjects[player].name:Remove()
-                    espObjects[player] = nil
-                end
-            end)
-        else
-            toggleBtn.Text = "ESP: OFF"
-            toggleBtn.TextColor3 = ACCENT_COLOR
-            status.Text = "Status: ESP Disabled"
-            
-            if espConnection then
-                espConnection:Disconnect()
-                espConnection = nil
-            end
-            
-            cleanupESP()
-        end
-    end)
-    
-    teamCheckbox.MouseButton1Click:Connect(function()
-        teamESP = not teamESP
-        teamCheckbox.Text = "Team ESP: " .. (teamESP and "ON" or "OFF")
-        teamCheckbox.TextColor3 = teamESP and Color3.fromRGB(0, 255, 0) or ACCENT_COLOR
-    end)
-end
--- Trip Implementation
-local function setupTrip()
-    local page = pages["Trip"]
-    
-    local toggleBtn = createButton(page, "TRIP: OFF", UDim2.new(0.05, 0, 0.05, 0))
-    local intensitySlider = Instance.new("Frame")
-    intensitySlider.Name = "IntensitySlider"
-    intensitySlider.Parent = page
-    intensitySlider.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    intensitySlider.BorderColor3 = ACCENT_COLOR
-    intensitySlider.Position = UDim2.new(0.05, 0, 0.15, 0)
-    intensitySlider.Size = UDim2.new(0.9, 0, 0.05, 0)
-    
-    local intensityKnob = Instance.new("TextButton")
-    intensityKnob.Name = "IntensityKnob"
-    intensityKnob.Parent = intensitySlider
-    intensityKnob.BackgroundColor3 = ACCENT_COLOR
-    intensityKnob.Size = UDim2.new(0.1, 0, 1, 0)
-    intensityKnob.Text = ""
-    
-    local status = createStatus(page, UDim2.new(0.05, 0, 0.25, 0))
-    
-    local tripEnabled = false
-    local tripIntensity = 0.5
-    local tripConnection = nil
-    local originalColors = {}
-    
-    -- Slider functionality
-    local dragging = false
-    local dragStart = nil
-    local startPos = nil
-    
-    intensityKnob.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = true
-            dragStart = input.Position
-            startPos = intensityKnob.Position
-        end
-    end)
-    
-    UserInputService.InputChanged:Connect(function(input)
-        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-            local delta = input.Position - dragStart
-            local xPos = math.clamp(startPos.X.Scale + delta.X / intensitySlider.AbsoluteSize.X, 0, 0.9)
-            intensityKnob.Position = UDim2.new(xPos, 0, 0, 0)
-            tripIntensity = xPos + 0.1 -- Range: 0.1-1
-            status.Text = "Intensity: " .. string.format("%.1f", tripIntensity)
-        end
-    end)
-    
-    UserInputService.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = false
-        end
-    end)
-    
-    local function updateTrip()
-        local time = tick()
-        for part, originalColor in pairs(originalColors) do
-            if part and part.Parent then
-                local hue = (math.sin(time * tripIntensity + part.Position.X/10) + 1) / 2
-                part.Color = Color3.fromHSV(hue, 1, 1)
-            else
-                originalColors[part] = nil
-            end
-        end
-    end
-    
-    toggleBtn.MouseButton1Click:Connect(function()
-        tripEnabled = not tripEnabled
-        
-        if tripEnabled then
-            toggleBtn.Text = "TRIP: ON"
-            toggleBtn.TextColor3 = Color3.fromRGB(0, 255, 0)
-            status.Text = "Status: Trip Enabled"
-            
-            -- Store original colors and start effect
-            for _, part in ipairs(workspace:GetDescendants()) do
-                if part:IsA("BasePart") or part:IsA("Decal") then
-                    originalColors[part] = part.Color
-                end
-            end
-            
-            tripConnection = RunService.RenderStepped:Connect(updateTrip)
-        else
-            toggleBtn.Text = "TRIP: OFF"
-            toggleBtn.TextColor3 = ACCENT_COLOR
-            status.Text = "Status: Trip Disabled"
-            
-            -- Restore original colors
-            for part, originalColor in pairs(originalColors) do
-                if part and part.Parent then
-                    part.Color = originalColor
-                end
-            end
-            
-            if tripConnection then
-                tripConnection:Disconnect()
-                tripConnection = nil
-            end
-            
-            table.clear(originalColors)
-        end
-    end)
-end
--- Misc Features Implementation
-local function setupMisc()
-    local page = pages["Misc"]
-    
-    -- Speed Changer
-    local speedBtn = createButton(page, "SPEED: OFF", UDim2.new(0.05, 0, 0.05, 0))
-    local speedSlider = Instance.new("Frame")
-    speedSlider.Name = "SpeedSlider"
-    speedSlider.Parent = page
-    speedSlider.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    speedSlider.BorderColor3 = ACCENT_COLOR
-    speedSlider.Position = UDim2.new(0.05, 0, 0.15, 0)
-    speedSlider.Size = UDim2.new(0.9, 0, 0.05, 0)
-    
-    local speedKnob = Instance.new("TextButton")
-    speedKnob.Name = "SpeedKnob"
-    speedKnob.Parent = speedSlider
-    speedKnob.BackgroundColor3 = ACCENT_COLOR
-    speedKnob.Size = UDim2.new(0.1, 0, 1, 0)
-    speedKnob.Text = ""
-    
-    -- Jump Power
-    local jumpBtn = createButton(page, "JUMP: OFF", UDim2.new(0.05, 0, 0.25, 0))
-    local jumpSlider = Instance.new("Frame")
-    jumpSlider.Name = "JumpSlider"
-    jumpSlider.Parent = page
-    jumpSlider.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    jumpSlider.BorderColor3 = ACCENT_COLOR
-    jumpSlider.Position = UDim2.new(0.05, 0, 0.35, 0)
-    jumpSlider.Size = UDim2.new(0.9, 0, 0.05, 0)
-    
-    local jumpKnob = Instance.new("TextButton")
-    jumpKnob.Name = "JumpKnob"
-    jumpKnob.Parent = jumpSlider
-    jumpKnob.BackgroundColor3 = ACCENT_COLOR
-    jumpKnob.Size = UDim2.new(0.1, 0, 1, 0)
-    jumpKnob.Text = ""
-    
-    -- Noclip
-    local noclipBtn = createButton(page, "NOCLIP: OFF", UDim2.new(0.05, 0, 0.45, 0))
-    
-    -- Status
-    local status = createStatus(page, UDim2.new(0.05, 0, 0.55, 0))
-    
-    -- Variables
-    local speedEnabled = false
-    local jumpEnabled = false
-    local noclipEnabled = false
-    local speedValue = 16
-    local jumpValue = 50
-    local defaultSpeed = 16
-    local defaultJump = 50
-    local connections = {}
-    
-    -- Slider Setup Function
-    local function setupSlider(slider, knob, callback)
-        local dragging = false
-        local dragStart = nil
-        local startPos = nil
-        
-        knob.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                dragging = true
-                dragStart = input.Position
-                startPos = knob.Position
-            end
-        end)
-        
-        UserInputService.InputChanged:Connect(function(input)
-            if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-                local delta = input.Position - dragStart
-                local xPos = math.clamp(startPos.X.Scale + delta.X / slider.AbsoluteSize.X, 0, 0.9)
-                knob.Position = UDim2.new(xPos, 0, 0, 0)
-                callback(xPos)
-            end
-        end)
-        
-        UserInputService.InputEnded:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                dragging = false
-            end
-        end)
-    end
-    
-    -- Speed Control
-    setupSlider(speedSlider, speedKnob, function(value)
-        speedValue = 16 + (value * 484) -- Range: 16-500
-        status.Text = "Speed: " .. math.floor(speedValue)
-        
-        if speedEnabled then
-            local character = Players.LocalPlayer.Character
-            if character and character:FindFirstChild("Humanoid") then
-                character.Humanoid.WalkSpeed = speedValue
-            end
-        end
-    end)
-    
-    speedBtn.MouseButton1Click:Connect(function()
-        speedEnabled = not speedEnabled
-        speedBtn.Text = "SPEED: " .. (speedEnabled and "ON" or "OFF")
-        speedBtn.TextColor3 = speedEnabled and Color3.fromRGB(0, 255, 0) or ACCENT_COLOR
-        
-        local character = Players.LocalPlayer.Character
-        if character and character:FindFirstChild("Humanoid") then
-            character.Humanoid.WalkSpeed = speedEnabled and speedValue or defaultSpeed
-        end
-    end)
-    
-    -- Jump Control
-    setupSlider(jumpSlider, jumpKnob, function(value)
-        jumpValue = 50 + (value * 450) -- Range: 50-500
-        status.Text = "Jump Power: " .. math.floor(jumpValue)
-        
-        if jumpEnabled then
-            local character = Players.LocalPlayer.Character
-            if character and character:FindFirstChild("Humanoid") then
-                character.Humanoid.JumpPower = jumpValue
-            end
-        end
-    end)
-    
-    jumpBtn.MouseButton1Click:Connect(function()
-        jumpEnabled = not jumpEnabled
-        jumpBtn.Text = "JUMP: " .. (jumpEnabled and "ON" or "OFF")
-        jumpBtn.TextColor3 = jumpEnabled and Color3.fromRGB(0, 255, 0) or ACCENT_COLOR
-        
-        local character = Players.LocalPlayer.Character
-        if character and character:FindFirstChild("Humanoid") then
-            character.Humanoid.JumpPower = jumpEnabled and jumpValue or defaultJump
-        end
-    end)
-    
-    -- Noclip Implementation
-    local function updateNoclip()
-        local character = Players.LocalPlayer.Character
-        if character then
-            for _, part in ipairs(character:GetDescendants()) do
-                if part:IsA("BasePart") then
-                    part.CanCollide = not noclipEnabled
-                end
-            end
-        end
-    end
-    
-    noclipBtn.MouseButton1Click:Connect(function()
-        noclipEnabled = not noclipEnabled
-        noclipBtn.Text = "NOCLIP: " .. (noclipEnabled and "ON" or "OFF")
-        noclipBtn.TextColor3 = noclipEnabled and Color3.fromRGB(0, 255, 0) or ACCENT_COLOR
-        
-        if noclipEnabled then
-            connections.noclip = RunService.Stepped:Connect(updateNoclip)
-        else
-            if connections.noclip then
-                connections.noclip:Disconnect()
-                connections.noclip = nil
-            end
-            updateNoclip() -- Reset collision
-        end
-    end)
-    
-    -- Character Added Handler
-    Players.LocalPlayer.CharacterAdded:Connect(function(character)
-        if speedEnabled then
-            character:WaitForChild("Humanoid").WalkSpeed = speedValue
-        end
-        if jumpEnabled then
-            character:WaitForChild("Humanoid").JumpPower = jumpValue
-        end
-    end)
-end
--- Scanner Animation Function
-local function startScannerAnimation()
-    coroutine.wrap(function()
-        while wait() do
-            if not ScannerEffect then break end
-            
-            TweenService:Create(ScannerEffect, TweenInfo.new(2, Enum.EasingStyle.Linear), {
-                Position = UDim2.new(0, 0, 1, 0)
-            }):Play()
-            wait(2)
-            if not ScannerEffect then break end
-            ScannerEffect.Position = UDim2.new(0, 0, 0, -2)
-        end
-    end)()
+    page.ClipsDescendants = true
 end
 
--- Loading Sequence
-local function runLoadingSequence()
-    local loadingSteps = {
-        {text = "Initializing system...", time = 0.5},
-        {text = "Loading modules...", time = 0.5},
-        {text = "Bypassing security...", time = 0.7},
-        {text = "Injecting code...", time = 0.6},
-        {text = "Establishing connection...", time = 0.5},
-        {text = "Loading interface...", time = 0.8},
-        {text = "Ready to execute", time = 1.0}
-    }
-    
-    for i, step in ipairs(loadingSteps) do
-        if not LoadingStatus or not LoadingStatus.Parent then return false end
-        LoadingStatus.Text = step.text
-        
-        local tween = TweenService:Create(LoadingFill, TweenInfo.new(step.time), {
-            Size = UDim2.new(i/#loadingSteps, 0, 1, 0)
-        })
-        tween:Play()
-        tween.Completed:Wait()
-    end
-    
-    safeWait(0.5)
-    return true
-end
+pages.AimbotPage.Visible = true
 
--- Protection System
-local function setupProtection()
-    -- Anti Remote Spy
-    local mt = getrawmetatable(game)
-    local oldNamecall = mt.__namecall
-    setreadonly(mt, false)
-    
-    mt.__namecall = newcclosure(function(self, ...)
-        local method = getnamecallmethod()
-        local args = {...}
-        
-        if method == "FireServer" or method == "InvokeServer" then
-            -- Add basic remote call protection
-            return nil
-        end
-        
-        return oldNamecall(self, ...)
-    end)
-    
-    setreadonly(mt, true)
-    
-    -- Anti Memory Detection
-    local function obfuscateMemory()
-        local fakeTable = {}
-        for i = 1, 1000 do
-            fakeTable[i] = string.rep("a", math.random(100, 1000))
-        end
-        return fakeTable
-    end
-    
-    -- Keep some fake memory allocated
-    getgenv().antiMemoryDetection = obfuscateMemory()
-end
-
--- Tab Management
-local function setupTabs()
-    -- Show first page by default
-    pages["Aimbot"].Visible = true
-    buttons["Aimbot"].BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    
-    -- Tab switching logic
-    for name, button in pairs(buttons) do
-        button.MouseButton1Click:Connect(function()
+-- Navigation Button Functionality
+for _, btn in ipairs(navFrame:GetChildren()) do
+    if btn:IsA("TextButton") then
+        btn.MouseButton1Click:Connect(function()
             for _, page in pairs(pages) do
                 page.Visible = false
             end
-            for _, btn in pairs(buttons) do
-                btn.BackgroundColor3 = BG_COLOR
-            end
-            pages[name].Visible = true
-            button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+            pages[btn.Name:gsub("Btn", "Page")].Visible = true
         end)
     end
 end
+-- Aimbot Page Elements
+local aimbotInput = Instance.new("TextBox")
+aimbotInput.Name = "AimbotInput"
+aimbotInput.Parent = pages.AimbotPage
+aimbotInput.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+aimbotInput.BorderColor3 = Color3.new(1, 0, 0)
+aimbotInput.Position = UDim2.new(0.05, 0, 0.05, 0)
+aimbotInput.Size = UDim2.new(0.65, 0, 0.1, 0)
+aimbotInput.PlaceholderText = "Enter Username (Optional)"
+aimbotInput.TextColor3 = Color3.new(1, 1, 1)
+aimbotInput.TextScaled = true
 
--- Close Button Handler
-CloseBtn.MouseButton1Click:Connect(function()
-    ScreenGui:Destroy()
-    getgenv().HackerInterfaceLoaded = false
-end)
--- Main Initialization
-local function init()
-    -- Initialize Protection
-    setupProtection()
+local aimbotToggle = Instance.new("TextButton")
+aimbotToggle.Name = "AimbotToggle"
+aimbotToggle.Parent = pages.AimbotPage
+aimbotToggle.BackgroundColor3 = Color3.new(0, 0, 0)
+aimbotToggle.BorderColor3 = Color3.new(1, 0, 0)
+aimbotToggle.Position = UDim2.new(0.75, 0, 0.05, 0)
+aimbotToggle.Size = UDim2.new(0.2, 0, 0.1, 0)
+aimbotToggle.Font = Enum.Font.SourceSansBold
+aimbotToggle.Text = "OFF"
+aimbotToggle.TextColor3 = Color3.new(1, 0, 0)
+aimbotToggle.TextScaled = true
+
+local aimbotStatus = Instance.new("TextLabel")
+aimbotStatus.Name = "AimbotStatus"
+aimbotStatus.Parent = pages.AimbotPage
+aimbotStatus.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+aimbotStatus.BorderColor3 = Color3.new(1, 0, 0)
+aimbotStatus.Position = UDim2.new(0.05, 0, 0.2, 0)
+aimbotStatus.Size = UDim2.new(0.9, 0, 0.1, 0)
+aimbotStatus.Font = Enum.Font.SourceSans
+aimbotStatus.Text = "Status: Ready"
+aimbotStatus.TextColor3 = Color3.new(1, 1, 1)
+aimbotStatus.TextScaled = true
+
+-- Aimbot Logic
+local aimbotEnabled = false
+local aimbotConnection = nil
+local currentTarget = nil
+
+local function getClosestPlayer()
+    local localPlayer = Players.LocalPlayer
+    local localCharacter = localPlayer.Character
+    if not localCharacter then return nil end
     
-    -- Setup Features
-    setupTabs()
-    setupAimbot()
-    setupOrbit()
-    setupESP()
-    setupTrip()
-    setupMisc()
+    local localHead = localCharacter:FindFirstChild("Head")
+    if not localHead then return nil end
     
-    -- Run Loading Sequence
-    if runLoadingSequence() then
-        -- Show Main Interface
-        MainFrame.BackgroundTransparency = 1
-        MainFrame.Visible = true
+    local closestPlayer = nil
+    local closestDistance = math.huge
+    
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= localPlayer and player.Character then
+            local character = player.Character
+            local humanoid = character:FindFirstChildOfClass("Humanoid")
+            local head = character:FindFirstChild("Head")
+            
+            if humanoid and humanoid.Health > 0 and head then
+                local distance = (head.Position - localHead.Position).Magnitude
+                if distance < closestDistance then
+                    closestDistance = distance
+                    closestPlayer = player
+                end
+            end
+        end
+    end
+    
+    return closestPlayer
+end
+
+local function updateAimbot()
+    if not aimbotEnabled then return end
+    
+    local targetPlayer = currentTarget
+    if not targetPlayer or not targetPlayer.Character then
+        targetPlayer = getClosestPlayer()
+        currentTarget = targetPlayer
+    end
+    
+    if targetPlayer and targetPlayer.Character then
+        local character = targetPlayer.Character
+        local head = character:FindFirstChild("Head")
+        local humanoid = character:FindFirstChildOfClass("Humanoid")
         
-        TweenService:Create(MainFrame, TweenInfo.new(0.5), {
-            BackgroundTransparency = 0
-        }):Play()
-        
-        -- Start Scanner Animation
-        startScannerAnimation()
-        
-        -- Cleanup Loading Screen
-        safeWait(1)
-        if LoadingFrame and LoadingFrame.Parent then
-            LoadingFrame:Destroy()
+        if head and humanoid and humanoid.Health > 0 then
+            local localCharacter = Players.LocalPlayer.Character
+            if localCharacter then
+                local humanoidRootPart = localCharacter:FindFirstChild("HumanoidRootPart")
+                if humanoidRootPart then
+                    local direction = (head.Position - humanoidRootPart.Position).Unit
+                    humanoidRootPart.CFrame = CFrame.new(humanoidRootPart.Position, humanoidRootPart.Position + direction)
+                end
+            end
+        else
+            currentTarget = nil
         end
     end
 end
 
--- Error Handler
-local function errorHandler(err)
-    warn("[Hacker Interface Error]:", tostring(err))
+local function toggleAimbot()
+    aimbotEnabled = not aimbotEnabled
     
-    -- Create Error Notification
-    local errorFrame = Instance.new("Frame")
-    errorFrame.Size = UDim2.new(0, 200, 0, 100)
-    errorFrame.Position = UDim2.new(0.5, -100, 0.5, -50)
-    errorFrame.BackgroundColor3 = Color3.fromRGB(40, 0, 0)
-    errorFrame.BorderColor3 = Color3.fromRGB(255, 0, 0)
-    errorFrame.Parent = ScreenGui
-    
-    local errorText = Instance.new("TextLabel")
-    errorText.Size = UDim2.new(1, -20, 1, -20)
-    errorText.Position = UDim2.new(0, 10, 0, 10)
-    errorText.BackgroundTransparency = 1
-    errorText.TextColor3 = Color3.fromRGB(255, 255, 255)
-    errorText.TextSize = 14
-    errorText.Text = "Error: " .. tostring(err)
-    errorText.TextWrapped = true
-    errorText.Parent = errorFrame
-    
-    wait(5)
-    errorFrame:Destroy()
+    if aimbotEnabled then
+        aimbotToggle.Text = "ON"
+        aimbotToggle.TextColor3 = Color3.new(0, 1, 0)
+        aimbotStatus.Text = "Status: Aimbot Enabled"
+        
+        local targetName = aimbotInput.Text
+        if targetName and targetName ~= "" then
+            currentTarget = Players:FindFirstChild(targetName)
+            if currentTarget then
+                aimbotStatus.Text = "Status: Targeting "..targetName
+            else
+                aimbotStatus.Text = "Status: Player not found, using closest"
+                currentTarget = getClosestPlayer()
+            end
+        else
+            currentTarget = getClosestPlayer()
+        end
+        
+        aimbotConnection = RunService.Heartbeat:Connect(updateAimbot)
+    else
+        aimbotToggle.Text = "OFF"
+        aimbotToggle.TextColor3 = Color3.new(1, 0, 0)
+        aimbotStatus.Text = "Status: Aimbot Disabled"
+        currentTarget = nil
+        
+        if aimbotConnection then
+            aimbotConnection:Disconnect()
+            aimbotConnection = nil
+        end
+    end
 end
 
--- Start the system with error handling
-xpcall(init, errorHandler)
+aimbotToggle.MouseButton1Click:Connect(toggleAimbot)
+-- Orbit Page Elements
+local orbitInput = Instance.new("TextBox")
+orbitInput.Name = "OrbitInput"
+orbitInput.Parent = pages.OrbitPage
+orbitInput.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+orbitInput.BorderColor3 = Color3.new(1, 0, 0)
+orbitInput.Position = UDim2.new(0.05, 0, 0.05, 0)
+orbitInput.Size = UDim2.new(0.65, 0, 0.1, 0)
+orbitInput.PlaceholderText = "Enter Username"
+orbitInput.TextColor3 = Color3.new(1, 1, 1)
+orbitInput.TextScaled = true
 
--- Return interface (for potential external control)
-return {
-    ScreenGui = ScreenGui,
-    MainFrame = MainFrame,
-    Version = VERSION
+local orbitToggle = Instance.new("TextButton")
+orbitToggle.Name = "OrbitToggle"
+orbitToggle.Parent = pages.OrbitPage
+orbitToggle.BackgroundColor3 = Color3.new(0, 0, 0)
+orbitToggle.BorderColor3 = Color3.new(1, 0, 0)
+orbitToggle.Position = UDim2.new(0.75, 0, 0.05, 0)
+orbitToggle.Size = UDim2.new(0.2, 0, 0.1, 0)
+orbitToggle.Font = Enum.Font.SourceSansBold
+orbitToggle.Text = "OFF"
+orbitToggle.TextColor3 = Color3.new(1, 0, 0)
+orbitToggle.TextScaled = true
+
+local orbitStatus = Instance.new("TextLabel")
+orbitStatus.Name = "OrbitStatus"
+orbitStatus.Parent = pages.OrbitPage
+orbitStatus.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+orbitStatus.BorderColor3 = Color3.new(1, 0, 0)
+orbitStatus.Position = UDim2.new(0.05, 0, 0.2, 0)
+orbitStatus.Size = UDim2.new(0.9, 0, 0.1, 0)
+orbitStatus.Font = Enum.Font.SourceSans
+orbitStatus.Text = "Status: Ready"
+orbitStatus.TextColor3 = Color3.new(1, 1, 1)
+orbitStatus.TextScaled = true
+
+-- Orbit Logic
+local orbitEnabled = false
+local orbitConnection = nil
+local orbitTarget = nil
+local orbitAngle = 0
+local orbitDistance = 2
+local orbitSpeed = 0.2
+
+local function toggleOrbit()
+    orbitEnabled = not orbitEnabled
+    
+    if orbitEnabled then
+        local targetName = orbitInput.Text
+        if targetName and targetName ~= "" then
+            orbitTarget = Players:FindFirstChild(targetName)
+            if not orbitTarget then
+                orbitStatus.Text = "Status: Player not found!"
+                orbitEnabled = false
+                return
+            end
+        else
+            orbitStatus.Text = "Status: Enter a username!"
+            orbitEnabled = false
+            return
+        end
+        
+        orbitToggle.Text = "ON"
+        orbitToggle.TextColor3 = Color3.new(0, 1, 0)
+        orbitStatus.Text = "Status: Orbiting "..orbitTarget.Name
+        
+        orbitConnection = RunService.Heartbeat:Connect(function()
+            if orbitTarget and orbitTarget.Character then
+                local targetRoot = orbitTarget.Character:FindFirstChild("HumanoidRootPart")
+                local localRoot = Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+                
+                if targetRoot and localRoot then
+                    orbitAngle = orbitAngle + orbitSpeed
+                    if orbitAngle > 2 * math.pi then
+                        orbitAngle = 0
+                    end
+                    
+                    local offset = Vector3.new(
+                        math.cos(orbitAngle) * orbitDistance,
+                        0,
+                        math.sin(orbitAngle) * orbitDistance
+                    )
+                    local targetPos = targetRoot.Position + offset
+                    
+                    localRoot.CFrame = CFrame.new(targetPos, targetRoot.Position)
+                else
+                    orbitStatus.Text = "Status: Missing root parts!"
+                end
+            else
+                orbitStatus.Text = "Status: Target lost!"
+                if orbitConnection then
+                    orbitConnection:Disconnect()
+                    orbitConnection = nil
+                end
+                orbitEnabled = false
+                orbitToggle.Text = "OFF"
+                orbitToggle.TextColor3 = Color3.new(1, 0, 0)
+            end
+        end)
+    else
+        orbitToggle.Text = "OFF"
+        orbitToggle.TextColor3 = Color3.new(1, 0, 0)
+        orbitStatus.Text = "Status: Orbit Disabled"
+        
+        if orbitConnection then
+            orbitConnection:Disconnect()
+            orbitConnection = nil
+        end
+    end
+end
+
+orbitToggle.MouseButton1Click:Connect(toggleOrbit)
+-- Tripmine Page Elements
+local tripmineInput = Instance.new("TextBox")
+tripmineInput.Name = "TripmineInput"
+tripmineInput.Parent = pages.TripminePage
+tripmineInput.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+tripmineInput.BorderColor3 = Color3.new(1, 0, 0)
+tripmineInput.Position = UDim2.new(0.05, 0, 0.05, 0)
+tripmineInput.Size = UDim2.new(0.65, 0, 0.1, 0)
+tripmineInput.PlaceholderText = "Enter Username"
+tripmineInput.TextColor3 = Color3.new(1, 1, 1)
+tripmineInput.TextScaled = true
+
+local tripmineThrowBtn = Instance.new("TextButton")
+tripmineThrowBtn.Name = "TripmineThrowBtn"
+tripmineThrowBtn.Parent = pages.TripminePage
+tripmineThrowBtn.BackgroundColor3 = Color3.new(0, 0, 0)
+tripmineThrowBtn.BorderColor3 = Color3.new(1, 0, 0)
+tripmineThrowBtn.Position = UDim2.new(0.75, 0, 0.05, 0)
+tripmineThrowBtn.Size = UDim2.new(0.2, 0, 0.1, 0)
+tripmineThrowBtn.Font = Enum.Font.SourceSansBold
+tripmineThrowBtn.Text = "Throw"
+tripmineThrowBtn.TextColor3 = Color3.new(1, 0, 0)
+tripmineThrowBtn.TextScaled = true
+
+local tripmineLoopToggle = Instance.new("TextButton")
+tripmineLoopToggle.Name = "TripmineLoopToggle"
+tripmineLoopToggle.Parent = pages.TripminePage
+tripmineLoopToggle.BackgroundColor3 = Color3.new(0, 0, 0)
+tripmineLoopToggle.BorderColor3 = Color3.new(1, 0, 0)
+tripmineLoopToggle.Position = UDim2.new(0.75, 0, 0.2, 0)
+tripmineLoopToggle.Size = UDim2.new(0.2, 0, 0.1, 0)
+tripmineLoopToggle.Font = Enum.Font.SourceSansBold
+tripmineLoopToggle.Text = "Loop: OFF"
+tripmineLoopToggle.TextColor3 = Color3.new(1, 0, 0)
+tripmineLoopToggle.TextScaled = true
+
+local tripmineStatus = Instance.new("TextLabel")
+tripmineStatus.Name = "TripmineStatus"
+tripmineStatus.Parent = pages.TripminePage
+tripmineStatus.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+tripmineStatus.BorderColor3 = Color3.new(1, 0, 0)
+tripmineStatus.Position = UDim2.new(0.05, 0, 0.2, 0)
+tripmineStatus.Size = UDim2.new(0.65, 0, 0.1, 0)
+tripmineStatus.Font = Enum.Font.SourceSans
+tripmineStatus.Text = "Status: Ready"
+tripmineStatus.TextColor3 = Color3.new(1, 1, 1)
+tripmineStatus.TextScaled = true
+
+-- Tripmine Logic
+local tripmineBox = nil
+local tripmineCenter = nil
+local tripmineLoopEnabled = false
+local tripmineLoopConnection = nil
+
+local function findTripmineParts()
+    local foundBox = workspace:FindFirstChild("SubspaceBox", true)
+    local foundCenter = workspace:FindFirstChild("SubspaceCenter", true)
+    
+    if not foundBox or not foundCenter then
+        for _, part in pairs(workspace:GetDescendants()) do
+            if part:IsA("BasePart") and part.Name:lower():find("box") then
+                foundBox = part
+            elseif part:IsA("BasePart") and part.Name:lower():find("center") then
+                foundCenter = part
+            end
+        end
+    end
+    
+    if foundBox and foundCenter then
+        tripmineBox = foundBox
+        tripmineCenter = foundCenter
+        return true
+    end
+    
+    return false
+end
+
+local function throwTripmineAtPlayer(targetPlayer)
+    if not targetPlayer then
+        tripmineStatus.Text = "Status: No target selected"
+        return
+    end
+    if not targetPlayer.Character then
+        tripmineStatus.Text = "Status: Target has no character"
+        return
+    end
+    
+    local humanoidRootPart = targetPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if not humanoidRootPart then
+        tripmineStatus.Text = "Status: Target missing HumanoidRootPart!"
+        return
+    end
+    
+    if not findTripmineParts() then
+        tripmineStatus.Text = "Status: Tripmine parts not found!"
+        return
+    end
+
+    if tripmineLoopConnection then
+        tripmineLoopConnection:Disconnect()
+        tripmineLoopConnection = nil
+    end
+
+    tripmineStatus.Text = "Status: Locking tripmine to "..targetPlayer.Name.."..."
+    
+    local targetPosition = humanoidRootPart.Position + Vector3.new(0, 3, 0)
+    tripmineBox.CFrame = CFrame.new(targetPosition)
+    tripmineCenter.CFrame = CFrame.new(targetPosition)
+    
+    if tripmineLoopEnabled then
+        tripmineLoopConnection = RunService.Heartbeat:Connect(function()
+            if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                local targetPosition = targetPlayer.Character.HumanoidRootPart.Position + Vector3.new(0, 3, 0)
+                
+                if not tripmineBox or not tripmineBox.Parent or not tripmineCenter or not tripmineCenter.Parent then
+                    if not findTripmineParts() then
+                        tripmineLoopConnection:Disconnect()
+                        tripmineLoopConnection = nil
+                        tripmineStatus.Text = "Status: Tripmine disappeared!"
+                        return
+                    end
+                end
+                
+                if not tripmineBox:FindFirstChild("BodyVelocity") then
+                    local boxVelocity = Instance.new("BodyVelocity")
+                    boxVelocity.Velocity = Vector3.new(0, 0, 0)
+                    boxVelocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+                    boxVelocity.P = 10000
+                    boxVelocity.Parent = tripmineBox
+                end
+                
+                if not tripmineCenter:FindFirstChild("BodyVelocity") then
+                    local centerVelocity = Instance.new("BodyVelocity")
+                    centerVelocity.Velocity = Vector3.new(0, 0, 0)
+                    centerVelocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+                    centerVelocity.P = 10000
+                    centerVelocity.Parent = tripmineCenter
+                end
+                
+                local direction = (targetPosition - tripmineBox.Position).Unit
+                tripmineBox.Velocity = direction * 50
+                tripmineCenter.Velocity = direction * 50
+            else
+                if tripmineLoopConnection then
+                    tripmineLoopConnection:Disconnect()
+                    tripmineLoopConnection = nil
+                end
+                tripmineStatus.Text = "Status: Target lost!"
+            end
+        end)
+    end
+
+    tripmineStatus.Text = "Status: Tripmine locked to "..targetPlayer.Name.."!"
+end
+
+local function toggleTripmineLoop()
+    tripmineLoopEnabled = not tripmineLoopEnabled
+    
+    if tripmineLoopEnabled then
+        tripmineLoopToggle.Text = "Loop: ON"
+        tripmineLoopToggle.TextColor3 = Color3.new(0, 1, 0)
+        tripmineStatus.Text = "Status: Loop enabled - tripmine will follow target"
+    else
+        tripmineLoopToggle.Text = "Loop: OFF"
+        tripmineLoopToggle.TextColor3 = Color3.new(1, 0, 0)
+        tripmineStatus.Text = "Status: Loop disabled"
+        
+        if tripmineLoopConnection then
+            tripmineLoopConnection:Disconnect()
+            tripmineLoopConnection = nil
+        end
+        
+        if tripmineBox then
+            tripmineBox.Velocity = Vector3.new(0, 0, 0)
+        end
+        if tripmineCenter then
+            tripmineCenter.Velocity = Vector3.new(0, 0, 0)
+        end
+    end
+end
+
+tripmineThrowBtn.MouseButton1Click:Connect(function()
+    local playerName = tripmineInput.Text
+    if playerName and playerName ~= "" then
+        local targetPlayer = Players:FindFirstChild(playerName)
+        if targetPlayer then
+            throwTripmineAtPlayer(targetPlayer)
+        else
+            tripmineStatus.Text = "Status: Player not found!"
+        end
+    else
+        tripmineStatus.Text = "Status: Enter a username!"
+    end
+end)
+
+tripmineLoopToggle.MouseButton1Click:Connect(toggleTripmineLoop)
+-- Spookz Page Elements
+local spookzScrollingFrame = Instance.new("ScrollingFrame")
+spookzScrollingFrame.Name = "SpookzScrollingFrame"
+spookzScrollingFrame.Parent = pages.SpookzPage
+spookzScrollingFrame.BackgroundTransparency = 1
+spookzScrollingFrame.Size = UDim2.new(1, 0, 1, 0)
+spookzScrollingFrame.CanvasSize = UDim2.new(0, 0, 1.5, 0)
+spookzScrollingFrame.ScrollBarThickness = 5
+
+local blockBtn = Instance.new("TextButton")
+blockBtn.Name = "BlockBtn"
+blockBtn.Parent = spookzScrollingFrame
+blockBtn.BackgroundColor3 = Color3.new(0, 0, 0)
+blockBtn.BorderColor3 = Color3.new(1, 0, 0)
+blockBtn.Position = UDim2.new(0.05, 0, 0.05, 0)
+blockBtn.Size = UDim2.new(0.9, 0, 0.15, 0)
+blockBtn.Font = Enum.Font.SourceSansBold
+blockBtn.Text = "Block Animation"
+blockBtn.TextColor3 = Color3.new(1, 0, 0)
+blockBtn.TextScaled = true
+
+local highlightBtn = Instance.new("TextButton")
+highlightBtn.Name = "HighlightBtn"
+highlightBtn.Parent = spookzScrollingFrame
+highlightBtn.BackgroundColor3 = Color3.new(0, 0, 0)
+highlightBtn.BorderColor3 = Color3.new(1, 0, 0)
+highlightBtn.Position = UDim2.new(0.05, 0, 0.25, 0)
+highlightBtn.Size = UDim2.new(0.9, 0, 0.15, 0)
+highlightBtn.Font = Enum.Font.SourceSansBold
+highlightBtn.Text = "Enable Highlights"
+highlightBtn.TextColor3 = Color3.new(1, 0, 0)
+highlightBtn.TextScaled = true
+
+local healthBarBtn = Instance.new("TextButton")
+healthBarBtn.Name = "HealthBarBtn"
+healthBarBtn.Parent = spookzScrollingFrame
+healthBarBtn.BackgroundColor3 = Color3.new(0, 0, 0)
+healthBarBtn.BorderColor3 = Color3.new(1, 0, 0)
+healthBarBtn.Position = UDim2.new(0.05, 0, 0.45, 0)
+healthBarBtn.Size = UDim2.new(0.9, 0, 0.15, 0)
+healthBarBtn.Font = Enum.Font.SourceSansBold
+healthBarBtn.Text = "Enable Health Bars"
+healthBarBtn.TextColor3 = Color3.new(1, 0, 0)
+healthBarBtn.TextScaled = true
+
+local staminaBtn = Instance.new("TextButton")
+staminaBtn.Name = "StaminaBtn"
+staminaBtn.Parent = spookzScrollingFrame
+staminaBtn.BackgroundColor3 = Color3.new(0, 0, 0)
+staminaBtn.BorderColor3 = Color3.new(1, 0, 0)
+staminaBtn.Position = UDim2.new(0.05, 0, 0.65, 0)
+staminaBtn.Size = UDim2.new(0.9, 0, 0.15, 0)
+staminaBtn.Font = Enum.Font.SourceSansBold
+staminaBtn.Text = "Infinite Stamina: OFF"
+staminaBtn.TextColor3 = Color3.new(1, 0, 0)
+staminaBtn.TextScaled = true
+
+local autoGenBtn = Instance.new("TextButton")
+autoGenBtn.Name = "AutoGenBtn"
+autoGenBtn.Parent = spookzScrollingFrame
+autoGenBtn.BackgroundColor3 = Color3.new(0, 0, 0)
+autoGenBtn.BorderColor3 = Color3.new(1, 0, 0)
+autoGenBtn.Position = UDim2.new(0.05, 0, 0.85, 0)
+autoGenBtn.Size = UDim2.new(0.9, 0, 0.15, 0)
+autoGenBtn.Font = Enum.Font.SourceSansBold
+autoGenBtn.Text = "Auto Generator: OFF"
+autoGenBtn.TextColor3 = Color3.new(1, 0, 0)
+autoGenBtn.TextScaled = true
+
+local genEspBtn = Instance.new("TextButton")
+genEspBtn.Name = "GenEspBtn"
+genEspBtn.Parent = spookzScrollingFrame
+genEspBtn.BackgroundColor3 = Color3.new(0, 0, 0)
+genEspBtn.BorderColor3 = Color3.new(1, 0, 0)
+genEspBtn.Position = UDim2.new(0.05, 0, 1.05, 0)
+genEspBtn.Size = UDim2.new(0.9, 0, 0.15, 0)
+genEspBtn.Font = Enum.Font.SourceSansBold
+genEspBtn.Text = "Generator ESP: OFF"
+genEspBtn.TextColor3 = Color3.new(1, 0, 0)
+genEspBtn.TextScaled = true
+
+local spookzStatus = Instance.new("TextLabel")
+spookzStatus.Name = "SpookzStatus"
+spookzStatus.Parent = spookzScrollingFrame
+spookzStatus.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+spookzStatus.BorderColor3 = Color3.new(1, 0, 0)
+spookzStatus.Position = UDim2.new(0.05, 0, 1.25, 0)
+spookzStatus.Size = UDim2.new(0.9, 0, 0.1, 0)
+spookzStatus.Font = Enum.Font.SourceSans
+spookzStatus.Text = "Status: Ready"
+spookzStatus.TextColor3 = Color3.new(1, 1, 1)
+spookzStatus.TextScaled = true
+
+-- Spookz Features Logic
+-- Block Animation
+local function playBlockAnimation()
+    local character = Players.LocalPlayer.Character
+    if not character then return end
+    
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+    if not humanoid then return end
+    
+    local animation = Instance.new("Animation")
+    animation.AnimationId = "rbxassetid://72722244508749"
+    
+    local animTrack = humanoid:LoadAnimation(animation)
+    animTrack:Play()
+    
+    spookzStatus.Text = "Block animation played!"
+    task.wait(3)
+    spookzStatus.Text = "Status: Ready"
+end
+
+blockBtn.MouseButton1Click:Connect(playBlockAnimation)
+
+-- Continue with other Spookz features...
+-- Spookz Features Logic (continued)
+-- Highlight System
+local highlightEnabled = false
+local highlightConnections = {}
+
+local function ApplyHighlight(player)
+    if not highlightEnabled then return end
+    
+    local character = player.Character
+    if not character then
+        character = player.CharacterAdded:Wait()
+    end
+    
+    local highlighter = Instance.new("Highlight")
+    highlighter.Parent = character
+    highlighter.OutlineColor = Color3.fromRGB(255, 0, 0)
+    highlighter.FillTransparency = 0.5
+    highlighter.FillColor = player.TeamColor.Color
+
+    highlightConnections[player] = {
+        Highlighter = highlighter,
+        TeamConnection = player:GetPropertyChangedSignal("TeamColor"):Connect(function()
+            highlighter.FillColor = player.TeamColor.Color
+        end)
+    }
+end
+
+local function ToggleHighlights()
+    highlightEnabled = not highlightEnabled
+    
+    if highlightEnabled then
+        highlightBtn.Text = "Disable Highlights"
+        spookzStatus.Text = "Highlights enabled!"
+        
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= Players.LocalPlayer then
+                ApplyHighlight(player)
+            end
+        end
+        
+        Players.PlayerAdded:Connect(function(player)
+            if player ~= Players.LocalPlayer then
+                ApplyHighlight(player)
+            end
+        end)
+    else
+        highlightBtn.Text = "Enable Highlights"
+        spookzStatus.Text = "Highlights disabled!"
+        
+        for _, data in pairs(highlightConnections) do
+            if data.Highlighter and data.Highlighter.Parent then
+                data.Highlighter:Destroy()
+            end
+            if data.TeamConnection then
+                data.TeamConnection:Disconnect()
+            end
+        end
+        
+        highlightConnections = {}
+    end
+end
+
+highlightBtn.MouseButton1Click:Connect(ToggleHighlights)
+
+-- Health Bar System
+local healthBarEnabled = false
+local healthBarConnections = {}
+
+local function createHealthBar(player)
+    if not healthBarEnabled then return end
+    
+    local character = player.Character
+    if not character then
+        character = player.CharacterAdded:Wait()
+    end
+    
+    local head = character:WaitForChild("Head")
+    local humanoid = character:WaitForChild("Humanoid")
+    
+    local billboard = Instance.new("BillboardGui")
+    billboard.Name = "HealthBarESP"
+    billboard.AlwaysOnTop = true
+    billboard.Size = UDim2.new(0, 100, 0, 30)
+    billboard.Adornee = head
+    billboard.ExtentsOffset = Vector3.new(0, 3, 0)
+    billboard.MaxDistance = 100
+    
+    local background = Instance.new("Frame")
+    background.Name = "Background"
+    background.Size = UDim2.new(1, 0, 0, 20)
+    background.Position = UDim2.new(0, 0, 0, 10)
+    background.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+    background.BorderSizePixel = 0
+    background.Parent = billboard
+    
+    local healthBar = Instance.new("Frame")
+    healthBar.Name = "HealthBar"
+    healthBar.Size = UDim2.new(1, -4, 1, -4)
+    healthBar.Position = UDim2.new(0, 2, 0, 2)
+    healthBar.BackgroundColor3 = Color3.new(0, 1, 0)
+    healthBar.BorderSizePixel = 0
+    healthBar.Parent = background
+    
+    local nameLabel = Instance.new("TextLabel")
+    nameLabel.Name = "NameLabel"
+    nameLabel.Size = UDim2.new(1, 0, 0, 10)
+    nameLabel.Position = UDim2.new(0, 0, 0, 0)
+    nameLabel.BackgroundTransparency = 1
+    nameLabel.Text = player.Name
+    nameLabel.TextColor3 = Color3.new(1, 1, 1)
+    nameLabel.Font = Enum.Font.GothamBold
+    nameLabel.TextSize = 12
+    nameLabel.Parent = billboard
+    
+    local function updateHealth()
+        local health = humanoid.Health
+        local maxHealth = humanoid.MaxHealth
+        local percentage = health / maxHealth
+        
+        healthBar.Size = UDim2.new(percentage, -4, 1, -4)
+        
+        if percentage > 0.5 then
+            healthBar.BackgroundColor3 = Color3.new(1 - (percentage - 0.5) * 2, 1, 0)
+        else
+            healthBar.BackgroundColor3 = Color3.new(1, percentage * 2, 0)
+        end
+    end
+    
+    local healthConnection = humanoid.HealthChanged:Connect(updateHealth)
+    updateHealth()
+    billboard.Parent = character
+    
+    healthBarConnections[player] = {
+        Billboard = billboard,
+        HealthConnection = healthConnection
+    }
+end
+
+local function ToggleHealthBars()
+    healthBarEnabled = not healthBarEnabled
+    
+    if healthBarEnabled then
+        healthBarBtn.Text = "Disable Health Bars"
+        spookzStatus.Text = "Health bars enabled!"
+        
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= Players.LocalPlayer then
+                createHealthBar(player)
+            end
+        end
+        
+        Players.PlayerAdded:Connect(function(player)
+            if player ~= Players.LocalPlayer then
+                createHealthBar(player)
+            end
+        end)
+    else
+        healthBarBtn.Text = "Enable Health Bars"
+        spookzStatus.Text = "Health bars disabled!"
+        
+        for _, data in pairs(healthBarConnections) do
+            if data.Billboard and data.Billboard.Parent then
+                data.Billboard:Destroy()
+            end
+            if data.HealthConnection then
+                data.HealthConnection:Disconnect()
+            end
+        end
+        
+        healthBarConnections = {}
+    end
+end
+
+healthBarBtn.MouseButton1Click:Connect(ToggleHealthBars)
+-- Teleport System
+local teleportInput = Instance.new("TextBox")
+teleportInput.Name = "TeleportInput"
+teleportInput.Parent = pages.TeleportPage
+teleportInput.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+teleportInput.BorderColor3 = Color3.new(1, 0, 0)
+teleportInput.Position = UDim2.new(0.05, 0, 0.05, 0)
+teleportInput.Size = UDim2.new(0.65, 0, 0.1, 0)
+teleportInput.PlaceholderText = "Enter Username"
+teleportInput.TextColor3 = Color3.new(1, 1, 1)
+teleportInput.TextScaled = true
+
+local teleportBtn = Instance.new("TextButton")
+teleportBtn.Name = "TeleportBtn"
+teleportBtn.Parent = pages.TeleportPage
+teleportBtn.BackgroundColor3 = Color3.new(0, 0, 0)
+teleportBtn.BorderColor3 = Color3.new(1, 0, 0)
+teleportBtn.Position = UDim2.new(0.75, 0, 0.05, 0)
+teleportBtn.Size = UDim2.new(0.2, 0, 0.1, 0)
+teleportBtn.Font = Enum.Font.SourceSansBold
+teleportBtn.Text = "Teleport"
+teleportBtn.TextColor3 = Color3.new(1, 0, 0)
+teleportBtn.TextScaled = true
+
+local teleportStatus = Instance.new("TextLabel")
+teleportStatus.Name = "TeleportStatus"
+teleportStatus.Parent = pages.TeleportPage
+teleportStatus.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+teleportStatus.BorderColor3 = Color3.new(1, 0, 0)
+teleportStatus.Position = UDim2.new(0.05, 0, 0.2, 0)
+teleportStatus.Size = UDim2.new(0.9, 0, 0.1, 0)
+teleportStatus.Font = Enum.Font.SourceSans
+teleportStatus.Text = "Status: Ready"
+teleportStatus.TextColor3 = Color3.new(1, 1, 1)
+teleportStatus.TextScaled = true
+
+local function teleportBehindPlayer(targetPlayer)
+    if not targetPlayer then
+        teleportStatus.Text = "Status: No target selected"
+        return
+    end
+    if not targetPlayer.Character then
+        teleportStatus.Text = "Status: Target has no character"
+        return
+    end
+    
+    local humanoidRootPart = targetPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if not humanoidRootPart then
+        teleportStatus.Text = "Status: Target missing HumanoidRootPart!"
+        return
+    end
+    
+    local localPlayer = Players.LocalPlayer
+    local localCharacter = localPlayer.Character
+    if not localCharacter then
+        teleportStatus.Text = "Status: You have no character!"
+        return
+    end
+    
+    local localRoot = localCharacter:FindFirstChild("HumanoidRootPart")
+    if not localRoot then
+        teleportStatus.Text = "Status: You're missing HumanoidRootPart!"
+        return
+    end
+    
+    local targetCFrame = humanoidRootPart.CFrame
+    local behindPosition = targetCFrame.Position - (targetCFrame.LookVector * 5.5)
+    
+    localRoot.CFrame = CFrame.new(behindPosition, targetCFrame.Position)
+    
+    teleportStatus.Text = "Status: Teleported behind "..targetPlayer.Name.."!"
+end
+
+teleportBtn.MouseButton1Click:Connect(function()
+    local playerName = teleportInput.Text
+    if playerName and playerName ~= "" then
+        local targetPlayer = Players:FindFirstChild(playerName)
+        if targetPlayer then
+            teleportBehindPlayer(targetPlayer)
+        else
+            teleportStatus.Text = "Status: Player not found!"
+        end
+    else
+        teleportStatus.Text = "Status: Enter a username!"
+    end
+end)
+
+-- Useless/Emote Tab
+local emoteFrame = Instance.new("ScrollingFrame")
+emoteFrame.Name = "EmoteFrame"
+emoteFrame.Parent = pages.UselessPage
+emoteFrame.BackgroundTransparency = 1
+emoteFrame.Size = UDim2.new(1, 0, 1, 0)
+emoteFrame.CanvasSize = UDim2.new(0, 0, 2, 0)
+emoteFrame.ScrollBarThickness = 5
+
+local emotes = {
+    {Name = "Dolphin Dance", Id = 5938541333},
+    {Name = "Floss Dance", Id = 5917459365},
+    {Name = "Give Heart", Id = 4940563117},
+    {Name = "Zombie", Id = 4210116953},
+    {Name = "Ninja", Id = 4919138730},
+    {Name = "Robot", Id = 4915840937},
+    {Name = "Thriller", Id = 4915828684},
+    {Name = "Shuffle", Id = 4915693583},
+    {Name = "Head Banging", Id = 4841397952},
+    {Name = "Salute", Id = 4841405708},
+    {Name = "Rock On", Id = 4841399916}
 }
+
+local currentEmote = nil
+
+for i, emote in ipairs(emotes) do
+    local emoteBtn = Instance.new("TextButton")
+    emoteBtn.Name = emote.Name.."Btn"
+    emoteBtn.Parent = emoteFrame
+    emoteBtn.BackgroundColor3 = Color3.new(0, 0, 0)
+    emoteBtn.BorderColor3 = Color3.new(1, 0, 0)
+    emoteBtn.Position = UDim2.new(0.05, 0, 0.05 + (i-1) * 0.15, 0)
+    emoteBtn.Size = UDim2.new(0.9, 0, 0.1, 0)
+    emoteBtn.Font = Enum.Font.SourceSansBold
+    emoteBtn.Text = emote.Name
+    emoteBtn.TextColor3 = Color3.new(1, 0, 0)
+    emoteBtn.TextScaled = true
+    
+    emoteBtn.MouseButton1Click:Connect(function()
+        local character = Players.LocalPlayer.Character
+        if not character then return end
+        
+        local humanoid = character:FindFirstChildOfClass("Humanoid")
+        if not humanoid then return end
+        
+        if currentEmote then
+            currentEmote:Stop()
+        end
+        
+        local animation = Instance.new("Animation")
+        animation.AnimationId = "rbxassetid://"..emote.Id
+        
+        currentEmote = humanoid:LoadAnimation(animation)
+        currentEmote:Play()
+    end)
+end
+
+local stopEmoteBtn = Instance.new("TextButton")
+stopEmoteBtn.Name = "StopEmoteBtn"
+stopEmoteBtn.Parent = emoteFrame
+stopEmoteBtn.BackgroundColor3 = Color3.new(0, 0, 0)
+stopEmoteBtn.BorderColor3 = Color3.new(1, 0, 0)
+stopEmoteBtn.Position = UDim2.new(0.05, 0, 0.05 + #emotes * 0.15, 0)
+stopEmoteBtn.Size = UDim2.new(0.9, 0, 0.1, 0)
+stopEmoteBtn.Font = Enum.Font.SourceSansBold
+stopEmoteBtn.Text = "Stop Emote"
+stopEmoteBtn.TextColor3 = Color3.new(1, 0, 0)
+stopEmoteBtn.TextScaled = true
+
+stopEmoteBtn.MouseButton1Click:Connect(function()
+    if currentEmote then
+        currentEmote:Stop()
+        currentEmote = nil
+    end
+end)
