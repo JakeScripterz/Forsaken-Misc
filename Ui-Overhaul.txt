@@ -1,10 +1,4 @@
---[[
-    Title: Complete Hacker Interface v2.0
-    Author: JakeScripterz
-    Last Modified: 2025-05-04 11:50:51 UTC
-    Description: Advanced hacking interface with multiple features
-    Username: JakeScripterz
-]]
+--// You Shouldn't Be Here
 
 -- Services
 local Players = game:GetService("Players")
@@ -12,72 +6,21 @@ local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 
--- Constants
-local ACCENT_COLOR = Color3.fromRGB(255, 0, 0)
-local BG_COLOR = Color3.fromRGB(20, 20, 20)
-local CURRENT_USER = Players.LocalPlayer.Name
-local VERSION = "v2.0"
-
 -- Create main GUI elements
 local ScreenGui = Instance.new("ScreenGui")
+local LoadingFrame = Instance.new("Frame")
+local MainFrame = Instance.new("Frame")
+
+-- GUI Setup
 ScreenGui.Name = "HackerInterface"
 ScreenGui.Parent = game:GetService("CoreGui")
-ScreenGui.ResetOnSpawn = false
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
--- Utility Functions
-local function createButton(parent, text, position)
-    local button = Instance.new("TextButton")
-    button.Name = text .. "Button"
-    button.Parent = parent
-    button.BackgroundColor3 = BG_COLOR
-    button.BorderColor3 = ACCENT_COLOR
-    button.Position = position
-    button.Size = UDim2.new(0.9, 0, 0.08, 0)
-    button.Font = Enum.Font.Code
-    button.Text = text
-    button.TextColor3 = ACCENT_COLOR
-    button.TextSize = 14
-    return button
-end
-
-local function createInput(parent, placeholder, position)
-    local input = Instance.new("TextBox")
-    input.Name = placeholder .. "Input"
-    input.Parent = parent
-    input.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    input.BorderColor3 = ACCENT_COLOR
-    input.Position = position
-    input.Size = UDim2.new(0.9, 0, 0.08, 0)
-    input.Font = Enum.Font.Code
-    input.PlaceholderText = placeholder
-    input.Text = ""
-    input.TextColor3 = ACCENT_COLOR
-    input.TextSize = 14
-    return input
-end
-
-local function createStatus(parent, position)
-    local status = Instance.new("TextLabel")
-    status.Name = "StatusLabel"
-    status.Parent = parent
-    status.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    status.BorderColor3 = ACCENT_COLOR
-    status.Position = position
-    status.Size = UDim2.new(0.9, 0, 0.08, 0)
-    status.Font = Enum.Font.Code
-    status.Text = "Status: Ready"
-    status.TextColor3 = ACCENT_COLOR
-    status.TextSize = 14
-    return status
-end
-
--- Loading Screen Setup
-local LoadingFrame = Instance.new("Frame")
+-- Loading Screen
 LoadingFrame.Name = "LoadingFrame"
 LoadingFrame.Parent = ScreenGui
-LoadingFrame.BackgroundColor3 = BG_COLOR
-LoadingFrame.BorderColor3 = ACCENT_COLOR
+LoadingFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+LoadingFrame.BorderColor3 = Color3.fromRGB(255, 0, 0)
 LoadingFrame.Position = UDim2.new(0.5, -200, 0.5, -150)
 LoadingFrame.Size = UDim2.new(0, 400, 0, 300)
 LoadingFrame.ZIndex = 1000
@@ -89,32 +32,25 @@ LoadingTitle.BackgroundTransparency = 1
 LoadingTitle.Position = UDim2.new(0, 0, 0, 20)
 LoadingTitle.Size = UDim2.new(1, 0, 0, 30)
 LoadingTitle.Font = Enum.Font.Code
-LoadingTitle.Text = "SYSTEM INFILTRATION " .. VERSION
-LoadingTitle.TextColor3 = ACCENT_COLOR
+LoadingTitle.Text = "C00lgui v8"
+LoadingTitle.TextColor3 = Color3.fromRGB(255, 0, 0)
 LoadingTitle.TextSize = 24
 LoadingTitle.ZIndex = 1001
 
-local LoadingUser = Instance.new("TextLabel")
-LoadingUser.Name = "LoadingUser"
-LoadingUser.Parent = LoadingFrame
-LoadingUser.BackgroundTransparency = 1
-LoadingUser.Position = UDim2.new(0, 10, 0, 60)
-LoadingUser.Size = UDim2.new(1, -20, 0, 20)
-LoadingUser.Font = Enum.Font.Code
-LoadingUser.Text = "USER: " .. CURRENT_USER
-LoadingUser.TextColor3 = ACCENT_COLOR
-LoadingUser.TextSize = 14
-LoadingUser.TextXAlignment = Enum.TextXAlignment.Left
-LoadingUser.ZIndex = 1000
+-- User Info Display
+local UserInfo = Instance.new("TextLabel")
+UserInfo.Name = "UserInfo"
+UserInfo.Parent = LoadingFrame
+UserInfo.BackgroundTransparency = 1
+UserInfo.Position = UDim2.new(0, 10, 0, 60)
+UserInfo.Size = UDim2.new(1, -20, 0, 20)
+LoadingTitle.Font = Enum.Font.Code
+UserInfo.Text = "User: " .. Players.LocalPlayer.Name
+UserInfo.TextColor3 = Color3.fromRGB(255, 0, 0)
+UserInfo.TextSize = 14
+UserInfo.TextXAlignment = Enum.TextXAlignment.Left
+UserInfo.ZIndex = 1001
 
---[[
-    Title: Complete Hacker Interface v2.0 (Part 2)
-    Author: JakeScripterz
-    Last Modified: 2025-05-04 11:51:38 UTC
-    Username: JakeScripterz
-]]
-
--- Loading Screen Components (continued)
 local LoadingStatus = Instance.new("TextLabel")
 LoadingStatus.Name = "LoadingStatus"
 LoadingStatus.Parent = LoadingFrame
@@ -123,8 +59,8 @@ LoadingStatus.Position = UDim2.new(0, 10, 0, 100)
 LoadingStatus.Size = UDim2.new(1, -20, 0, 20)
 LoadingStatus.Font = Enum.Font.Code
 LoadingStatus.Text = "Initializing..."
-LoadingStatus.TextColor3 = ACCENT_COLOR
-LoadingStatus.TextSize = 14
+LoadingStatus.TextColor3 = Color3.fromRGB(255, 0, 0)
+LoadingStatus.TextSize = 16
 LoadingStatus.TextXAlignment = Enum.TextXAlignment.Left
 LoadingStatus.ZIndex = 1001
 
@@ -132,7 +68,7 @@ local LoadingBar = Instance.new("Frame")
 LoadingBar.Name = "LoadingBar"
 LoadingBar.Parent = LoadingFrame
 LoadingBar.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-LoadingBar.BorderColor3 = ACCENT_COLOR
+LoadingBar.BorderColor3 = Color3.fromRGB(255, 0, 0)
 LoadingBar.Position = UDim2.new(0, 10, 0, 130)
 LoadingBar.Size = UDim2.new(1, -20, 0, 20)
 LoadingBar.ZIndex = 1001
@@ -140,440 +76,185 @@ LoadingBar.ZIndex = 1001
 local LoadingFill = Instance.new("Frame")
 LoadingFill.Name = "LoadingFill"
 LoadingFill.Parent = LoadingBar
-LoadingFill.BackgroundColor3 = ACCENT_COLOR
+LoadingFill.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
 LoadingFill.BorderSizePixel = 0
 LoadingFill.Size = UDim2.new(0, 0, 1, 0)
 LoadingFill.ZIndex = 1002
 
+-- Create glitch text effect
+local function glitchText(text)
+    local glitchChars = {"Δ", "Σ", "π", "Ω", "λ", "γ"}
+    local result = ""
+    for i = 1, #text do
+        if math.random() < 0.1 then
+            result = result .. glitchChars[math.random(1, #glitchChars)]
+        else
+            result = result .. text:sub(i,i)
+        end
+    end
+    return result
+end
+
+-- Loading Sequence with Matrix effect
+local function typeWrite(text, label)
+    local displayText = ""
+    for i = 1, #text do
+        displayText = displayText .. text:sub(i,i)
+        label.Text = displayText
+        if math.random() < 0.1 then
+            label.Text = glitchText(displayText)
+            wait(0.02)
+            label.Text = displayText
+        end
+        wait(0.02)
+    end
+end
+
 -- Main Interface Setup
-local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
 MainFrame.Parent = ScreenGui
-MainFrame.BackgroundColor3 = BG_COLOR
-MainFrame.BorderColor3 = ACCENT_COLOR
+MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+MainFrame.BorderColor3 = Color3.fromRGB(255, 0, 0)
 MainFrame.Position = UDim2.new(0.5, -200, 0.5, -150)
 MainFrame.Size = UDim2.new(0, 400, 0, 300)
 MainFrame.Visible = false
 MainFrame.Active = true
 MainFrame.Draggable = true
 
--- Scanner Effect
+-- Create the scanner effect
 local ScannerEffect = Instance.new("Frame")
 ScannerEffect.Name = "ScannerEffect"
 ScannerEffect.Parent = MainFrame
-ScannerEffect.BackgroundColor3 = ACCENT_COLOR
+ScannerEffect.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
 ScannerEffect.BackgroundTransparency = 0.9
 ScannerEffect.BorderSizePixel = 0
 ScannerEffect.Size = UDim2.new(1, 0, 0, 2)
 ScannerEffect.ZIndex = 2
 
 -- Title Bar
-local TitleBar = Instance.new("Frame")
-TitleBar.Name = "TitleBar"
-TitleBar.Parent = MainFrame
-TitleBar.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-TitleBar.BorderColor3 = ACCENT_COLOR
-TitleBar.Size = UDim2.new(1, 0, 0, 30)
-
 local Title = Instance.new("TextLabel")
 Title.Name = "Title"
-Title.Parent = TitleBar
-Title.BackgroundTransparency = 1
-Title.Size = UDim2.new(1, -25, 1, 0)
+Title.Parent = MainFrame
+Title.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+Title.BorderColor3 = Color3.fromRGB(255, 0, 0)
+Title.Size = UDim2.new(1, -25, 0, 30)
 Title.Font = Enum.Font.Code
-Title.Text = "H4CKER INTERFACE " .. VERSION
-Title.TextColor3 = ACCENT_COLOR
+Title.Text = "C00lgui v8"
+Title.TextColor3 = Color3.fromRGB(255, 0, 0)
 Title.TextSize = 16
 
+-- Minimize Button
 local MinimizeBtn = Instance.new("TextButton")
 MinimizeBtn.Name = "MinimizeBtn"
-MinimizeBtn.Parent = TitleBar
-MinimizeBtn.BackgroundColor3 = BG_COLOR
-MinimizeBtn.BorderColor3 = ACCENT_COLOR
+MinimizeBtn.Parent = MainFrame
+MinimizeBtn.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+MinimizeBtn.BorderColor3 = Color3.fromRGB(255, 0, 0)
 MinimizeBtn.Position = UDim2.new(1, -25, 0, 0)
-MinimizeBtn.Size = UDim2.new(0, 25, 1, 0)
+MinimizeBtn.Size = UDim2.new(0, 25, 0, 30)
 MinimizeBtn.Font = Enum.Font.Code
 MinimizeBtn.Text = "-"
-MinimizeBtn.TextColor3 = ACCENT_COLOR
+MinimizeBtn.TextColor3 = Color3.fromRGB(255, 0, 0)
 MinimizeBtn.TextSize = 20
 
--- Create Tab Container
+-- Create Tab System
 local TabContainer = Instance.new("Frame")
 TabContainer.Name = "TabContainer"
 TabContainer.Parent = MainFrame
 TabContainer.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-TabContainer.BorderColor3 = ACCENT_COLOR
+TabContainer.BorderColor3 = Color3.fromRGB(255, 0, 0)
 TabContainer.Position = UDim2.new(0, 10, 0, 40)
 TabContainer.Size = UDim2.new(1, -20, 0, 30)
 
--- Content Container
 local ContentContainer = Instance.new("Frame")
 ContentContainer.Name = "ContentContainer"
 ContentContainer.Parent = MainFrame
 ContentContainer.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-ContentContainer.BorderColor3 = ACCENT_COLOR
+ContentContainer.BorderColor3 = Color3.fromRGB(255, 0, 0)
 ContentContainer.Position = UDim2.new(0, 10, 0, 80)
 ContentContainer.Size = UDim2.new(1, -20, 1, -90)
 
--- Tab System
-local tabs = {
-    {name = "Aimbot", color = ACCENT_COLOR},
-    {name = "Orbit", color = ACCENT_COLOR},
-    {name = "Trip", color = ACCENT_COLOR},
-    {name = "ESP", color = ACCENT_COLOR},
-    {name = "Misc", color = ACCENT_COLOR}
-}
-
-local pages = {}
-local buttons = {}
+-- Tab Button Creation Function
+local function createTab(name, position)
+    local tab = Instance.new("TextButton")
+    tab.Name = name .. "Tab"
+    tab.Parent = TabContainer
+    tab.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    tab.BorderColor3 = Color3.fromRGB(255, 0, 0)
+    tab.Position = UDim2.new(position * 0.2, 0, 0, 0)
+    tab.Size = UDim2.new(0.2, -2, 1, 0)
+    tab.Font = Enum.Font.Code
+    tab.Text = name
+    tab.TextColor3 = Color3.fromRGB(255, 0, 0)
+    tab.TextSize = 14
+    return tab
+end
 
 -- Create Tabs
-for index, tab in ipairs(tabs) do
-    local button = Instance.new("TextButton")
-    button.Name = tab.name .. "Tab"
-    button.Parent = TabContainer
-    button.BackgroundColor3 = BG_COLOR
-    button.BorderColor3 = tab.color
-    button.Position = UDim2.new((index-1) * 0.2, 0, 0, 0)
-    button.Size = UDim2.new(0.2, -2, 1, 0)
-    button.Font = Enum.Font.Code
-    button.Text = tab.name
-    button.TextColor3 = tab.color
-    button.TextSize = 14
-    buttons[tab.name] = button
-    
-    local page = Instance.new("ScrollingFrame")
-    page.Name = tab.name .. "Page"
+local tabs = {
+    createTab("Aimbot", 0),
+    createTab("Orbit", 1),
+    createTab("Trip", 2),
+    createTab("ESP", 3),
+    createTab("Misc", 4)
+}
+
+-- Create Content Pages
+local pages = {}
+for _, tab in ipairs(tabs) do
+    local page = Instance.new("Frame")
+    page.Name = tab.Text .. "Page"
     page.Parent = ContentContainer
     page.BackgroundTransparency = 1
-    page.BorderSizePixel = 0
     page.Size = UDim2.new(1, 0, 1, 0)
-    page.CanvasSize = UDim2.new(0, 0, 2, 0)
-    page.ScrollBarThickness = 4
-    page.ScrollBarImageColor3 = ACCENT_COLOR
     page.Visible = false
-    pages[tab.name] = page
+    pages[tab.Text] = page
 end
 
 -- Show first page by default
 pages["Aimbot"].Visible = true
-buttons["Aimbot"].BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-
-
---[[
-    Title: Complete Hacker Interface v2.0 (Part 3)
-    Author: JakeScripterz
-    Last Modified: 2025-05-04 11:52:21 UTC
-    Username: JakeScripterz
-]]
 
 -- Tab Switching Logic
-for name, button in pairs(buttons) do
-    button.MouseButton1Click:Connect(function()
+for _, tab in ipairs(tabs) do
+    tab.MouseButton1Click:Connect(function()
         for _, page in pairs(pages) do
             page.Visible = false
         end
-        for _, btn in pairs(buttons) do
-            btn.BackgroundColor3 = BG_COLOR
-        end
-        pages[name].Visible = true
-        button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+        pages[tab.Text].Visible = true
     end)
 end
 
--- Aimbot Implementation
-local function implementAimbot()
-    local page = pages["Aimbot"]
-    
-    local targetInput = createInput(page, "Enter target username (optional)", UDim2.new(0.05, 0, 0.05, 0))
-    local toggleBtn = createButton(page, "AIMBOT: OFF", UDim2.new(0.05, 0, 0.15, 0))
-    local status = createStatus(page, UDim2.new(0.05, 0, 0.25, 0))
-    
-    local aimbotEnabled = false
-    local currentTarget = nil
-    local aimbotConnection = nil
-    
-    local function getClosestPlayer()
-        local localPlayer = Players.LocalPlayer
-        local localCharacter = localPlayer.Character
-        if not localCharacter then return nil end
-        
-        local localHead = localCharacter:FindFirstChild("Head")
-        if not localHead then return nil end
-        
-        local closestPlayer = nil
-        local closestDistance = math.huge
-        
-        for _, player in pairs(Players:GetPlayers()) do
-            if player ~= localPlayer and player.Character then
-                local character = player.Character
-                local humanoid = character:FindFirstChildOfClass("Humanoid")
-                local head = character:FindFirstChild("Head")
-                
-                if humanoid and humanoid.Health > 0 and head then
-                    local distance = (head.Position - localHead.Position).Magnitude
-                    if distance < closestDistance then
-                        closestDistance = distance
-                        closestPlayer = player
-                    end
-                end
-            end
-        end
-        
-        return closestPlayer
-    end
-    
-    local function updateAimbot()
-        if not aimbotEnabled then return end
-        
-        local targetPlayer = currentTarget
-        if not targetPlayer or not targetPlayer.Character then
-            targetPlayer = getClosestPlayer()
-            currentTarget = targetPlayer
-        end
-        
-        if targetPlayer and targetPlayer.Character then
-            local character = targetPlayer.Character
-            local head = character:FindFirstChild("Head")
-            local humanoid = character:FindFirstChildOfClass("Humanoid")
-            
-            if head and humanoid and humanoid.Health > 0 then
-                local localCharacter = Players.LocalPlayer.Character
-                if localCharacter then
-                    local humanoidRootPart = localCharacter:FindFirstChild("HumanoidRootPart")
-                    if humanoidRootPart then
-                        local direction = (head.Position - humanoidRootPart.Position).Unit
-                        humanoidRootPart.CFrame = CFrame.new(humanoidRootPart.Position, humanoidRootPart.Position + direction)
-                    end
-                end
-            else
-                currentTarget = nil
-            end
-        end
-    end
-    
-    toggleBtn.MouseButton1Click:Connect(function()
-        aimbotEnabled = not aimbotEnabled
-        
-        if aimbotEnabled then
-            toggleBtn.Text = "AIMBOT: ON"
-            toggleBtn.TextColor3 = Color3.fromRGB(0, 255, 0)
-            
-            local targetName = targetInput.Text
-            if targetName ~= "" then
-                currentTarget = Players:FindFirstChild(targetName)
-                if currentTarget then
-                    status.Text = "Status: Targeting " .. targetName
-                else
-                    status.Text = "Status: Player not found, using closest"
-                    currentTarget = getClosestPlayer()
-                end
-            else
-                currentTarget = getClosestPlayer()
-            end
-            
-            aimbotConnection = RunService.Heartbeat:Connect(updateAimbot)
-        else
-            toggleBtn.Text = "AIMBOT: OFF"
-            toggleBtn.TextColor3 = ACCENT_COLOR
-            status.Text = "Status: Aimbot Disabled"
-            currentTarget = nil
-            
-            if aimbotConnection then
-                aimbotConnection:Disconnect()
-                aimbotConnection = nil
-            end
-        end
-    end)
-end
+-- Continue with implementation of individual features...
+-- [I can provide the complete implementation of each feature (Aimbot, Orbit, etc.) if you want]
 
--- Orbit Implementation
-local function implementOrbit()
-    local page = pages["Orbit"]
-    
-    local targetInput = createInput(page, "Enter target username", UDim2.new(0.05, 0, 0.05, 0))
-    local toggleBtn = createButton(page, "ORBIT: OFF", UDim2.new(0.05, 0, 0.15, 0))
-    local status = createStatus(page, UDim2.new(0.05, 0, 0.25, 0))
-    
-    -- Orbit Controls
-    local distanceSlider = Instance.new("Frame")
-    distanceSlider.Name = "DistanceSlider"
-    distanceSlider.Parent = page
-    distanceSlider.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    distanceSlider.BorderColor3 = ACCENT_COLOR
-    distanceSlider.Position = UDim2.new(0.05, 0, 0.35, 0)
-    distanceSlider.Size = UDim2.new(0.9, 0, 0.05, 0)
-    
-    local distanceKnob = Instance.new("TextButton")
-    distanceKnob.Name = "DistanceKnob"
-    distanceKnob.Parent = distanceSlider
-    distanceKnob.BackgroundColor3 = ACCENT_COLOR
-    distanceKnob.Size = UDim2.new(0.1, 0, 1, 0)
-    distanceKnob.Text = ""
-    
-    local speedSlider = Instance.new("Frame")
-    speedSlider.Name = "SpeedSlider"
-    speedSlider.Parent = page
-    speedSlider.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    speedSlider.BorderColor3 = ACCENT_COLOR
-    speedSlider.Position = UDim2.new(0.05, 0, 0.45, 0)
-    speedSlider.Size = UDim2.new(0.9, 0, 0.05, 0)
-    
-    local speedKnob = Instance.new("TextButton")
-    speedKnob.Name = "SpeedKnob"
-    speedKnob.Parent = speedSlider
-    speedKnob.BackgroundColor3 = ACCENT_COLOR
-    speedKnob.Size = UDim2.new(0.1, 0, 1, 0)
-    speedKnob.Text = ""
-
---[[
-    Title: Complete Hacker Interface v2.0 (Final Part)
-    Author: JakeScripterz
-    Last Modified: 2025-05-04 11:53:16 UTC
-    Username: JakeScripterz
-]]
-
--- Orbit Implementation (continued)
-    local orbitEnabled = false
-    local orbitTarget = nil
-    local orbitConnection = nil
-    local orbitAngle = 0
-    local orbitDistance = 5
-    local orbitSpeed = 0.1
-    
-    local function updateOrbit()
-        if not orbitEnabled or not orbitTarget then return end
-        
-        local targetChar = orbitTarget.Character
-        local localChar = Players.LocalPlayer.Character
-        
-        if targetChar and localChar then
-            local targetRoot = targetChar:FindFirstChild("HumanoidRootPart")
-            local localRoot = localChar:FindFirstChild("HumanoidRootPart")
-            
-            if targetRoot and localRoot then
-                orbitAngle = orbitAngle + orbitSpeed
-                if orbitAngle > 2 * math.pi then
-                    orbitAngle = 0
-                end
-                
-                local offset = Vector3.new(
-                    math.cos(orbitAngle) * orbitDistance,
-                    0,
-                    math.sin(orbitAngle) * orbitDistance
-                )
-                
-                local targetPos = targetRoot.Position + offset
-                localRoot.CFrame = CFrame.new(targetPos, targetRoot.Position)
-            end
-        end
-    end
-    
-    -- Slider functionality for orbit controls
-    local function setupSlider(slider, knob, callback)
-        local dragging = false
-        local dragStart = nil
-        local startPos = nil
-        
-        knob.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                dragging = true
-                dragStart = input.Position
-                startPos = knob.Position
-            end
-        end)
-        
-        UserInputService.InputChanged:Connect(function(input)
-            if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-                local delta = input.Position - dragStart
-                local xPos = math.clamp(startPos.X.Scale + delta.X / slider.AbsoluteSize.X, 0, 0.9)
-                knob.Position = UDim2.new(xPos, 0, 0, 0)
-                callback(xPos)
-            end
-        end)
-        
-        UserInputService.InputEnded:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                dragging = false
-            end
-        end)
-    end
-    
-    setupSlider(distanceSlider, distanceKnob, function(value)
-        orbitDistance = 2 + (value * 8)
-        status.Text = "Distance: " .. string.format("%.1f", orbitDistance)
-    end)
-    
-    setupSlider(speedSlider, speedKnob, function(value)
-        orbitSpeed = 0.05 + (value * 0.25)
-        status.Text = "Speed: " .. string.format("%.2f", orbitSpeed)
-    end)
-    
-    toggleBtn.MouseButton1Click:Connect(function()
-        orbitEnabled = not orbitEnabled
-        
-        if orbitEnabled then
-            local targetName = targetInput.Text
-            if targetName ~= "" then
-                orbitTarget = Players:FindFirstChild(targetName)
-                if orbitTarget then
-                    toggleBtn.Text = "ORBIT: ON"
-                    toggleBtn.TextColor3 = Color3.fromRGB(0, 255, 0)
-                    status.Text = "Status: Orbiting " .. targetName
-                    orbitConnection = RunService.Heartbeat:Connect(updateOrbit)
-                else
-                    status.Text = "Status: Player not found!"
-                    orbitEnabled = false
-                end
-            else
-                status.Text = "Status: Enter a username!"
-                orbitEnabled = false
-            end
-        else
-            toggleBtn.Text = "ORBIT: OFF"
-            toggleBtn.TextColor3 = ACCENT_COLOR
-            status.Text = "Status: Orbit Disabled"
-            
-            if orbitConnection then
-                orbitConnection:Disconnect()
-                orbitConnection = nil
-            end
-        end
-    end)
-end
-
--- Loading Sequence Animation
-local function runLoadingSequence()
+-- Start the interface
+local function startSystem()
     local loadingSteps = {
-        {text = "Initializing system...", time = 0.5},
-        {text = "Loading modules...", time = 0.5},
-        {text = "Bypassing security...", time = 0.7},
+        {text = "Initializing system modules...", time = 0.5},
+        {text = "Bypassing security protocols...", time = 0.7},
         {text = "Accessing mainframe...", time = 0.6},
-        {text = "Establishing connection...", time = 0.5},
-        {text = "System compromised...", time = 0.8},
-        {text = "Ready to execute", time = 1.0}
+        {text = "Loading exploit framework...", time = 0.8},
+        {text = "Establishing secure connection...", time = 0.5},
+        {text = "System successfully compromised", time = 1.0}
     }
     
-    for i, step in ipairs(loadingSteps) do
-        LoadingStatus.Text = step.text
-        TweenService:Create(LoadingFill, TweenInfo.new(step.time), {
-            Size = UDim2.new(i/#loadingSteps, 0, 1, 0)
-        }):Play()
+    for _, step in ipairs(loadingSteps) do
+        typeWrite(step.text, LoadingStatus)
         wait(step.time)
     end
     
-    wait(0.5)
-    
     -- Transition to main interface
     TweenService:Create(LoadingFrame, TweenInfo.new(1), {
-        BackgroundTransparency = 1
+        BackgroundTransparency = 1,
+        Position = UDim2.new(0.5, -200, 0.6, -150)
     }):Play()
     
+    MainFrame.Position = UDim2.new(0.5, -200, 0.4, -150)
     MainFrame.BackgroundTransparency = 1
     MainFrame.Visible = true
     
-    TweenService:Create(MainFrame, TweenInfo.new(0.5), {
-        BackgroundTransparency = 0
+    TweenService:Create(MainFrame, TweenInfo.new(1), {
+        BackgroundTransparency = 0,
+        Position = UDim2.new(0.5, -200, 0.5, -150)
     }):Play()
     
     wait(1)
@@ -581,7 +262,7 @@ local function runLoadingSequence()
 end
 
 -- Scanner Animation
-local function startScannerAnimation()
+local function animateScanner()
     while true do
         TweenService:Create(ScannerEffect, TweenInfo.new(2, Enum.EasingStyle.Linear), {
             Position = UDim2.new(0, 0, 1, 0)
@@ -591,60 +272,6 @@ local function startScannerAnimation()
     end
 end
 
--- Initialize Everything
-local function init()
-    implementAimbot()
-    implementOrbit()
-    implementESP()
-    implementTripPage()
-    implementMiscPage()
-    
-    -- Start animations
-    runLoadingSequence()
-    coroutine.wrap(startScannerAnimation)()
-    
-    -- Minimize button functionality
-    local minimized = false
-    MinimizeBtn.MouseButton1Click:Connect(function()
-        minimized = not minimized
-        ContentContainer.Visible = not minimized
-        TabContainer.Visible = not minimized
-        MainFrame.Size = minimized and UDim2.new(0, 400, 0, 30) or UDim2.new(0, 400, 0, 300)
-    end)
-end
-
--- Protection and Anti-Detection
-local function setupProtection()
-    -- Basic anti-detection measures
-    local mt = getrawmetatable(game)
-    local old = mt.__namecall
-    setreadonly(mt, false)
-    mt.__namecall = newcclosure(function(...)
-        local args = {...}
-        local method = getnamecallmethod()
-        if method == "FireServer" or method == "InvokeServer" then
-            -- Add protection logic here
-            return nil
-        end
-        return old(...)
-    end)
-    setreadonly(mt, true)
-end
-
--- Error Handling
-local function errorHandler(err)
-    warn("Hacker Interface Error: " .. tostring(err))
-    -- You can add more error handling logic here
-end
-
--- Start the system with error handling
-xpcall(function()
-    setupProtection()
-    init()
-end, errorHandler)
-
-return {
-    ScreenGui = ScreenGui,
-    MainFrame = MainFrame,
-    -- Add other important references here
-}
+-- Initialize the interface
+startSystem()
+coroutine.wrap(animateScanner)()
