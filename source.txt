@@ -1,0 +1,1608 @@
+local gui = Instance.new("ScreenGui")
+gui.Name = "c00lguiUltimate"
+gui.Parent = game:GetService("CoreGui")
+gui.ResetOnSpawn = false
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local TeleportService = game:GetService("TeleportService")
+local HttpService = game:GetService("HttpService")
+local MarketplaceService = game:GetService("MarketplaceService")
+
+local toggleBtn = Instance.new("TextButton")
+toggleBtn.Name = "ToggleBtn"
+toggleBtn.Parent = gui
+toggleBtn.BackgroundColor3 = Color3.new(0, 0, 0)
+toggleBtn.BorderColor3 = Color3.new(1, 0, 0)
+toggleBtn.BorderSizePixel = 2
+toggleBtn.Size = UDim2.new(0, 50, 0, 50)
+toggleBtn.Position = UDim2.new(0, 10, 0.5, -25)
+toggleBtn.Font = Enum.Font.SourceSansBold
+toggleBtn.Text = "☰"
+toggleBtn.TextColor3 = Color3.new(1, 0, 0)
+toggleBtn.TextScaled = true
+toggleBtn.ZIndex = 10
+
+local dragging, dragInput, dragStart, startPos
+local function updateInput(input)
+    local delta = input.Position - dragStart
+    toggleBtn.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+end
+
+toggleBtn.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = toggleBtn.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then dragging = false end
+        end)
+    end
+end)
+
+toggleBtn.InputChanged:Connect(function(input)
+    if (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) and dragging then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then updateInput(input) end
+end)
+
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Parent = gui
+mainFrame.BackgroundColor3 = Color3.new(0, 0, 0)
+mainFrame.BorderColor3 = Color3.new(1, 0, 0)
+mainFrame.BorderSizePixel = 2
+mainFrame.Size = UDim2.new(0.4, 0, 0.65, 0)
+mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+mainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+mainFrame.Visible = false
+
+toggleBtn.MouseButton1Click:Connect(function()
+    mainFrame.Visible = not mainFrame.Visible
+end)
+
+local navFrame = Instance.new("Frame")
+navFrame.Name = "NavFrame"
+navFrame.Parent = mainFrame
+navFrame.BackgroundColor3 = Color3.new(0, 0, 0)
+navFrame.BorderColor3 = Color3.new(1, 0, 0)
+navFrame.Size = UDim2.new(1, 0, 0.15, 0)
+
+local buttons = {
+    {Name = "Aimbot", Position = 0},
+    {Name = "Orbit", Position = 0.1666},
+    {Name = "Tripmine", Position = 0.3332},
+    {Name = "Spookz", Position = 0.4998},
+    {Name = "Teleport", Position = 0.6664},
+    {Name = "Useless", Position = 0.833}
+}
+
+for _, btn in ipairs(buttons) do
+    local button = Instance.new("TextButton")
+    button.Name = btn.Name.."Btn"
+    button.Parent = navFrame
+    button.BackgroundColor3 = Color3.new(0, 0, 0)
+    button.BorderColor3 = Color3.new(1, 0, 0)
+    button.Size = UDim2.new(0.1666, 0, 1, 0)
+    button.Position = UDim2.new(btn.Position, 0, 0, 0)
+    button.Font = Enum.Font.SourceSansBold
+    button.Text = btn.Name
+    button.TextColor3 = Color3.new(1, 0, 0)
+    button.TextScaled = true
+end
+
+local pages = {
+    AimbotPage = Instance.new("Frame"),
+    OrbitPage = Instance.new("Frame"),
+    TripminePage = Instance.new("Frame"),
+    SpookzPage = Instance.new("Frame"),
+    TeleportPage = Instance.new("Frame"),
+    UselessPage = Instance.new("Frame")
+}
+
+for name, page in pairs(pages) do
+    page.Name = name
+    page.Parent = mainFrame
+    page.BackgroundTransparency = 1
+    page.Size = UDim2.new(1, 0, 0.85, 0)
+    page.Position = UDim2.new(0, 0, 0.15, 0)
+    page.Visible = false
+    page.ClipsDescendants = true
+end
+
+pages.AimbotPage.Visible = true
+
+for _, btn in ipairs(navFrame:GetChildren()) do
+    if btn:IsA("TextButton") then
+        btn.MouseButton1Click:Connect(function()
+            for _, page in pairs(pages) do
+                page.Visible = false
+            end
+            pages[btn.Name:gsub("Btn", "Page")].Visible = true
+        end)
+    end
+end
+
+local aimbotInput = Instance.new("TextBox")
+aimbotInput.Name = "AimbotInput"
+aimbotInput.Parent = pages.AimbotPage
+aimbotInput.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+aimbotInput.BorderColor3 = Color3.new(1, 0, 0)
+aimbotInput.Position = UDim2.new(0.05, 0, 0.05, 0)
+aimbotInput.Size = UDim2.new(0.65, 0, 0.1, 0)
+aimbotInput.PlaceholderText = "Enter Username (Optional)"
+aimbotInput.TextColor3 = Color3.new(1, 1, 1)
+aimbotInput.TextScaled = true
+
+local aimbotToggle = Instance.new("TextButton")
+aimbotToggle.Name = "AimbotToggle"
+aimbotToggle.Parent = pages.AimbotPage
+aimbotToggle.BackgroundColor3 = Color3.new(0, 0, 0)
+aimbotToggle.BorderColor3 = Color3.new(1, 0, 0)
+aimbotToggle.Position = UDim2.new(0.75, 0, 0.05, 0)
+aimbotToggle.Size = UDim2.new(0.2, 0, 0.1, 0)
+aimbotToggle.Font = Enum.Font.SourceSansBold
+aimbotToggle.Text = "OFF"
+aimbotToggle.TextColor3 = Color3.new(1, 0, 0)
+aimbotToggle.TextScaled = true
+
+local aimbotStatus = Instance.new("TextLabel")
+aimbotStatus.Name = "AimbotStatus"
+aimbotStatus.Parent = pages.AimbotPage
+aimbotStatus.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+aimbotStatus.BorderColor3 = Color3.new(1, 0, 0)
+aimbotStatus.Position = UDim2.new(0.05, 0, 0.2, 0)
+aimbotStatus.Size = UDim2.new(0.9, 0, 0.1, 0)
+aimbotStatus.Font = Enum.Font.SourceSans
+aimbotStatus.Text = "Status: Ready"
+aimbotStatus.TextColor3 = Color3.new(1, 1, 1)
+aimbotStatus.TextScaled = true
+
+local aimbotEnabled = false
+local aimbotConnection = nil
+local currentTarget = nil
+
+local function getClosestPlayer()
+    local localPlayer = Players.LocalPlayer
+    local localCharacter = localPlayer.Character
+    if not localCharacter then return nil end
+    
+    local localHead = localCharacter:FindFirstChild("Head")
+    if not localHead then return nil end
+    
+    local closestPlayer = nil
+    local closestDistance = math.huge
+    
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= localPlayer and player.Character then
+            local character = player.Character
+            local humanoid = character:FindFirstChildOfClass("Humanoid")
+            local head = character:FindFirstChild("Head")
+            
+            if humanoid and humanoid.Health > 0 and head then
+                local distance = (head.Position - localHead.Position).Magnitude
+                if distance < closestDistance then
+                    closestDistance = distance
+                    closestPlayer = player
+                end
+            end
+        end
+    end
+    
+    return closestPlayer
+end
+
+local function updateAimbot()
+    if not aimbotEnabled then return end
+    
+    local targetPlayer = currentTarget
+    if not targetPlayer or not targetPlayer.Character then
+        targetPlayer = getClosestPlayer()
+        currentTarget = targetPlayer
+    end
+    
+    if targetPlayer and targetPlayer.Character then
+        local character = targetPlayer.Character
+        local head = character:FindFirstChild("Head")
+        local humanoid = character:FindFirstChildOfClass("Humanoid")
+        
+        if head and humanoid and humanoid.Health > 0 then
+            local localPlayer = Players.LocalPlayer
+            local localCharacter = localPlayer.Character
+            if localCharacter then
+                local humanoidRootPart = localCharacter:FindFirstChild("HumanoidRootPart")
+                if humanoidRootPart then
+                    local direction = (head.Position - humanoidRootPart.Position).Unit
+                    humanoidRootPart.CFrame = CFrame.new(humanoidRootPart.Position, humanoidRootPart.Position + direction)
+                end
+            end
+        else
+            currentTarget = nil
+        end
+    end
+end
+
+local function toggleAimbot()
+    aimbotEnabled = not aimbotEnabled
+    
+    if aimbotEnabled then
+        aimbotToggle.Text = "ON"
+        aimbotToggle.TextColor3 = Color3.new(0, 1, 0)
+        aimbotStatus.Text = "Status: Aimbot Enabled"
+        
+        local targetName = aimbotInput.Text
+        if targetName and targetName ~= "" then
+            currentTarget = Players:FindFirstChild(targetName)
+            if currentTarget then
+                aimbotStatus.Text = "Status: Targeting "..targetName
+            else
+                aimbotStatus.Text = "Status: Player not found, using closest"
+                currentTarget = getClosestPlayer()
+            end
+        else
+            currentTarget = getClosestPlayer()
+        end
+        
+        aimbotConnection = RunService.Heartbeat:Connect(updateAimbot)
+    else
+        aimbotToggle.Text = "OFF"
+        aimbotToggle.TextColor3 = Color3.new(1, 0, 0)
+        aimbotStatus.Text = "Status: Aimbot Disabled"
+        currentTarget = nil
+        
+        if aimbotConnection then
+            aimbotConnection:Disconnect()
+            aimbotConnection = nil
+        end
+    end
+end
+
+aimbotToggle.MouseButton1Click:Connect(toggleAimbot)
+
+local orbitInput = Instance.new("TextBox")
+orbitInput.Name = "OrbitInput"
+orbitInput.Parent = pages.OrbitPage
+orbitInput.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+orbitInput.BorderColor3 = Color3.new(1, 0, 0)
+orbitInput.Position = UDim2.new(0.05, 0, 0.05, 0)
+orbitInput.Size = UDim2.new(0.65, 0, 0.1, 0)
+orbitInput.PlaceholderText = "Enter Username"
+orbitInput.TextColor3 = Color3.new(1, 1, 1)
+orbitInput.TextScaled = true
+
+local orbitToggle = Instance.new("TextButton")
+orbitToggle.Name = "OrbitToggle"
+orbitToggle.Parent = pages.OrbitPage
+orbitToggle.BackgroundColor3 = Color3.new(0, 0, 0)
+orbitToggle.BorderColor3 = Color3.new(1, 0, 0)
+orbitToggle.Position = UDim2.new(0.75, 0, 0.05, 0)
+orbitToggle.Size = UDim2.new(0.2, 0, 0.1, 0)
+orbitToggle.Font = Enum.Font.SourceSansBold
+orbitToggle.Text = "OFF"
+orbitToggle.TextColor3 = Color3.new(1, 0, 0)
+orbitToggle.TextScaled = true
+
+local orbitStatus = Instance.new("TextLabel")
+orbitStatus.Name = "OrbitStatus"
+orbitStatus.Parent = pages.OrbitPage
+orbitStatus.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+orbitStatus.BorderColor3 = Color3.new(1, 0, 0)
+orbitStatus.Position = UDim2.new(0.05, 0, 0.2, 0)
+orbitStatus.Size = UDim2.new(0.9, 0, 0.1, 0)
+orbitStatus.Font = Enum.Font.SourceSans
+orbitStatus.Text = "Status: Ready"
+orbitStatus.TextColor3 = Color3.new(1, 1, 1)
+orbitStatus.TextScaled = true
+
+local orbitEnabled = false
+local orbitConnection = nil
+local orbitTarget = nil
+local orbitAngle = 0
+local orbitDistance = 2
+local orbitSpeed = 0.2
+
+local function toggleOrbit()
+    orbitEnabled = not orbitEnabled
+    
+    if orbitEnabled then
+        local targetName = orbitInput.Text
+        if targetName and targetName ~= "" then
+            orbitTarget = Players:FindFirstChild(targetName)
+            if not orbitTarget then
+                orbitStatus.Text = "Status: Player not found!"
+                orbitEnabled = false
+                return
+            end
+        else
+            orbitStatus.Text = "Status: Enter a username!"
+            orbitEnabled = false
+            return
+        end
+        
+        orbitToggle.Text = "ON"
+        orbitToggle.TextColor3 = Color3.new(0, 1, 0)
+        orbitStatus.Text = "Status: Orbiting "..orbitTarget.Name
+        
+        orbitConnection = RunService.Heartbeat:Connect(function()
+            if orbitTarget and orbitTarget.Character then
+                local targetRoot = orbitTarget.Character:FindFirstChild("HumanoidRootPart")
+                local localRoot = Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+                
+                if targetRoot and localRoot then
+                    orbitAngle = orbitAngle + orbitSpeed
+                    if orbitAngle > 2 * math.pi then
+                        orbitAngle = 0
+                    end
+                    
+                    local offset = Vector3.new(math.cos(orbitAngle) * orbitDistance, 0, math.sin(orbitAngle) * orbitDistance)
+                    local orbitPosition = targetRoot.Position + offset
+                    
+                    localRoot.CFrame = CFrame.new(orbitPosition, targetRoot.Position)
+                else
+                    orbitStatus.Text = "Status: Missing root parts!"
+                end
+            else
+                orbitStatus.Text = "Status: Target lost!"
+                if orbitConnection then
+                    orbitConnection:Disconnect()
+                    orbitConnection = nil
+                end
+                orbitEnabled = false
+                orbitToggle.Text = "OFF"
+                orbitToggle.TextColor3 = Color3.new(1, 0, 0)
+            end
+        end)
+    else
+        orbitToggle.Text = "OFF"
+        orbitToggle.TextColor3 = Color3.new(1, 0, 0)
+        orbitStatus.Text = "Status: Orbit Disabled"
+        
+        if orbitConnection then
+            orbitConnection:Disconnect()
+            orbitConnection = nil
+        end
+    end
+end
+
+orbitToggle.MouseButton1Click:Connect(toggleOrbit)
+
+local tripmineInput = Instance.new("TextBox")
+tripmineInput.Name = "TripmineInput"
+tripmineInput.Parent = pages.TripminePage
+tripmineInput.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+tripmineInput.BorderColor3 = Color3.new(1, 0, 0)
+tripmineInput.Position = UDim2.new(0.05, 0, 0.05, 0)
+tripmineInput.Size = UDim2.new(0.65, 0, 0.1, 0)
+tripmineInput.PlaceholderText = "Enter Username"
+tripmineInput.TextColor3 = Color3.new(1, 1, 1)
+tripmineInput.TextScaled = true
+
+local tripmineThrowBtn = Instance.new("TextButton")
+tripmineThrowBtn.Name = "TripmineThrowBtn"
+tripmineThrowBtn.Parent = pages.TripminePage
+tripmineThrowBtn.BackgroundColor3 = Color3.new(0, 0, 0)
+tripmineThrowBtn.BorderColor3 = Color3.new(1, 0, 0)
+tripmineThrowBtn.Position = UDim2.new(0.75, 0, 0.05, 0)
+tripmineThrowBtn.Size = UDim2.new(0.2, 0, 0.1, 0)
+tripmineThrowBtn.Font = Enum.Font.SourceSansBold
+tripmineThrowBtn.Text = "Throw"
+tripmineThrowBtn.TextColor3 = Color3.new(1, 0, 0)
+tripmineThrowBtn.TextScaled = true
+
+local tripmineLoopToggle = Instance.new("TextButton")
+tripmineLoopToggle.Name = "TripmineLoopToggle"
+tripmineLoopToggle.Parent = pages.TripminePage
+tripmineLoopToggle.BackgroundColor3 = Color3.new(0, 0, 0)
+tripmineLoopToggle.BorderColor3 = Color3.new(1, 0, 0)
+tripmineLoopToggle.Position = UDim2.new(0.75, 0, 0.2, 0)
+tripmineLoopToggle.Size = UDim2.new(0.2, 0, 0.1, 0)
+tripmineLoopToggle.Font = Enum.Font.SourceSansBold
+tripmineLoopToggle.Text = "Loop: OFF"
+tripmineLoopToggle.TextColor3 = Color3.new(1, 0, 0)
+tripmineLoopToggle.TextScaled = true
+
+local tripmineStatus = Instance.new("TextLabel")
+tripmineStatus.Name = "TripmineStatus"
+tripmineStatus.Parent = pages.TripminePage
+tripmineStatus.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+tripmineStatus.BorderColor3 = Color3.new(1, 0, 0)
+tripmineStatus.Position = UDim2.new(0.05, 0, 0.2, 0)
+tripmineStatus.Size = UDim2.new(0.65, 0, 0.1, 0)
+tripmineStatus.Font = Enum.Font.SourceSans
+tripmineStatus.Text = "Status: Ready"
+tripmineStatus.TextColor3 = Color3.new(1, 1, 1)
+tripmineStatus.TextScaled = true
+
+local tripmineBox = nil
+local tripmineCenter = nil
+local tripmineLoopEnabled = false
+local tripmineLoopConnection = nil
+
+local function findTripmineParts()
+    local foundBox = workspace:FindFirstChild("SubspaceBox", true)
+    local foundCenter = workspace:FindFirstChild("SubspaceCenter", true)
+    
+    if not foundBox or not foundCenter then
+        for _, part in pairs(workspace:GetDescendants()) do
+            if part:IsA("BasePart") and part.Name:lower():find("box") then
+                foundBox = part
+            elseif part:IsA("BasePart") and part.Name:lower():find("center") then
+                foundCenter = part
+            end
+        end
+    end
+    
+    if foundBox and foundCenter then
+        tripmineBox = foundBox
+        tripmineCenter = foundCenter
+        return true
+    end
+    
+    return false
+end
+
+local function throwTripmineAtPlayer(targetPlayer)
+    if not targetPlayer then
+        tripmineStatus.Text = "Status: No target selected"
+        return
+    end
+    if not targetPlayer.Character then
+        tripmineStatus.Text = "Status: Target has no character"
+        return
+    end
+    
+    local humanoidRootPart = targetPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if not humanoidRootPart then
+        tripmineStatus.Text = "Status: Target missing HumanoidRootPart!"
+        return
+    end
+    
+    if not findTripmineParts() then
+        tripmineStatus.Text = "Status: Tripmine parts not found!"
+        return
+    end
+
+    if tripmineLoopConnection then
+        tripmineLoopConnection:Disconnect()
+        tripmineLoopConnection = nil
+    end
+
+    tripmineStatus.Text = "Status: Locking tripmine to "..targetPlayer.Name.."..."
+    
+    local targetPosition = humanoidRootPart.Position + Vector3.new(0, 3, 0)
+    tripmineBox.CFrame = CFrame.new(targetPosition)
+    tripmineCenter.CFrame = CFrame.new(targetPosition)
+    
+    if tripmineLoopEnabled then
+        tripmineLoopConnection = RunService.Heartbeat:Connect(function()
+            if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                local targetPosition = targetPlayer.Character.HumanoidRootPart.Position + Vector3.new(0, 3, 0)
+                
+                if not tripmineBox or not tripmineBox.Parent or not tripmineCenter or not tripmineCenter.Parent then
+                    if not findTripmineParts() then
+                        tripmineLoopConnection:Disconnect()
+                        tripmineLoopConnection = nil
+                        tripmineStatus.Text = "Status: Tripmine disappeared!"
+                        return
+                    end
+                end
+                
+                if not tripmineBox:FindFirstChild("BodyVelocity") then
+                    local boxVelocity = Instance.new("BodyVelocity")
+                    boxVelocity.Velocity = Vector3.new(0, 0, 0)
+                    boxVelocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+                    boxVelocity.P = 10000
+                    boxVelocity.Parent = tripmineBox
+                end
+                
+                if not tripmineCenter:FindFirstChild("BodyVelocity") then
+                    local centerVelocity = Instance.new("BodyVelocity")
+                    centerVelocity.Velocity = Vector3.new(0, 0, 0)
+                    centerVelocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+                    centerVelocity.P = 10000
+                    centerVelocity.Parent = tripmineCenter
+                end
+                
+                local direction = (targetPosition - tripmineBox.Position).Unit
+                tripmineBox.Velocity = direction * 50
+                tripmineCenter.Velocity = direction * 50
+            else
+                if tripmineLoopConnection then
+                    tripmineLoopConnection:Disconnect()
+                    tripmineLoopConnection = nil
+                end
+                tripmineStatus.Text = "Status: Target lost!"
+            end
+        end)
+    end
+
+    tripmineStatus.Text = "Status: Tripmine locked to "..targetPlayer.Name.."!"
+end
+
+local function toggleTripmineLoop()
+    tripmineLoopEnabled = not tripmineLoopEnabled
+    
+    if tripmineLoopEnabled then
+        tripmineLoopToggle.Text = "Loop: ON"
+        tripmineLoopToggle.TextColor3 = Color3.new(0, 1, 0)
+        tripmineStatus.Text = "Status: Loop enabled - tripmine will follow target"
+    else
+        tripmineLoopToggle.Text = "Loop: OFF"
+        tripmineLoopToggle.TextColor3 = Color3.new(1, 0, 0)
+        tripmineStatus.Text = "Status: Loop disabled"
+        
+        if tripmineLoopConnection then
+            tripmineLoopConnection:Disconnect()
+            tripmineLoopConnection = nil
+        end
+        
+        if tripmineBox then
+            tripmineBox.Velocity = Vector3.new(0, 0, 0)
+        end
+        if tripmineCenter then
+            tripmineCenter.Velocity = Vector3.new(0, 0, 0)
+        end
+    end
+end
+
+tripmineThrowBtn.MouseButton1Click:Connect(function()
+    local playerName = tripmineInput.Text
+    if playerName and playerName ~= "" then
+        local targetPlayer = Players:FindFirstChild(playerName)
+        if targetPlayer then
+            throwTripmineAtPlayer(targetPlayer)
+        else
+            tripmineStatus.Text = "Status: Player not found!"
+        end
+    else
+        tripmineStatus.Text = "Status: Enter a username!"
+    end
+end)
+
+tripmineLoopToggle.MouseButton1Click:Connect(toggleTripmineLoop)
+
+local teleportInput = Instance.new("TextBox")
+teleportInput.Name = "TeleportInput"
+teleportInput.Parent = pages.TeleportPage
+teleportInput.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+teleportInput.BorderColor3 = Color3.new(1, 0, 0)
+teleportInput.Position = UDim2.new(0.05, 0, 0.05, 0)
+teleportInput.Size = UDim2.new(0.65, 0, 0.1, 0)
+teleportInput.PlaceholderText = "Enter Username"
+teleportInput.TextColor3 = Color3.new(1, 1, 1)
+teleportInput.TextScaled = true
+
+local teleportBtn = Instance.new("TextButton")
+teleportBtn.Name = "TeleportBtn"
+teleportBtn.Parent = pages.TeleportPage
+teleportBtn.BackgroundColor3 = Color3.new(0, 0, 0)
+teleportBtn.BorderColor3 = Color3.new(1, 0, 0)
+teleportBtn.Position = UDim2.new(0.75, 0, 0.05, 0)
+teleportBtn.Size = UDim2.new(0.2, 0, 0.1, 0)
+teleportBtn.Font = Enum.Font.SourceSansBold
+teleportBtn.Text = "Teleport"
+teleportBtn.TextColor3 = Color3.new(1, 0, 0)
+teleportBtn.TextScaled = true
+
+local teleportStatus = Instance.new("TextLabel")
+teleportStatus.Name = "TeleportStatus"
+teleportStatus.Parent = pages.TeleportPage
+teleportStatus.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+teleportStatus.BorderColor3 = Color3.new(1, 0, 0)
+teleportStatus.Position = UDim2.new(0.05, 0, 0.2, 0)
+teleportStatus.Size = UDim2.new(0.9, 0, 0.1, 0)
+teleportStatus.Font = Enum.Font.SourceSans
+teleportStatus.Text = "Status: Ready"
+teleportStatus.TextColor3 = Color3.new(1, 1, 1)
+teleportStatus.TextScaled = true
+
+local function teleportBehindPlayer(targetPlayer)
+    if not targetPlayer then
+        teleportStatus.Text = "Status: No target selected"
+        return
+    end
+    if not targetPlayer.Character then
+        teleportStatus.Text = "Status: Target has no character"
+        return
+    end
+    
+    local humanoidRootPart = targetPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if not humanoidRootPart then
+        teleportStatus.Text = "Status: Target missing HumanoidRootPart!"
+        return
+    end
+    
+    local localPlayer = Players.LocalPlayer
+    local localCharacter = localPlayer.Character
+    if not localCharacter then
+        teleportStatus.Text = "Status: You have no character!"
+        return
+    end
+    
+    local localRoot = localCharacter:FindFirstChild("HumanoidRootPart")
+    if not localRoot then
+        teleportStatus.Text = "Status: You're missing HumanoidRootPart!"
+        return
+    end
+    
+    local targetCFrame = humanoidRootPart.CFrame
+    local behindPosition = targetCFrame.Position - (targetCFrame.LookVector * 5.5)
+    
+    localRoot.CFrame = CFrame.new(behindPosition, targetCFrame.Position)
+    
+    teleportStatus.Text = "Status: Teleported behind "..targetPlayer.Name.."!"
+end
+
+teleportBtn.MouseButton1Click:Connect(function()
+    local playerName = teleportInput.Text
+    if playerName and playerName ~= "" then
+        local targetPlayer = Players:FindFirstChild(playerName)
+        if targetPlayer then
+            teleportBehindPlayer(targetPlayer)
+        else
+            teleportStatus.Text = "Status: Player not found!"
+        end
+    else
+        teleportStatus.Text = "Status: Enter a username!"
+    end
+end)
+
+local spookzScrollingFrame = Instance.new("ScrollingFrame")
+spookzScrollingFrame.Name = "SpookzScrollingFrame"
+spookzScrollingFrame.Parent = pages.SpookzPage
+spookzScrollingFrame.BackgroundTransparency = 1
+spookzScrollingFrame.Size = UDim2.new(1, 0, 1, 0)
+spookzScrollingFrame.CanvasSize = UDim2.new(0, 0, 1.5, 0)
+spookzScrollingFrame.ScrollBarThickness = 5
+
+local blockBtn = Instance.new("TextButton")
+blockBtn.Name = "BlockBtn"
+blockBtn.Parent = spookzScrollingFrame
+blockBtn.BackgroundColor3 = Color3.new(0, 0, 0)
+blockBtn.BorderColor3 = Color3.new(1, 0, 0)
+blockBtn.Position = UDim2.new(0.05, 0, 0.05, 0)
+blockBtn.Size = UDim2.new(0.9, 0, 0.15, 0)
+blockBtn.Font = Enum.Font.SourceSansBold
+blockBtn.Text = "Block Animation"
+blockBtn.TextColor3 = Color3.new(1, 0, 0)
+blockBtn.TextScaled = true
+
+local highlightBtn = Instance.new("TextButton")
+highlightBtn.Name = "HighlightBtn"
+highlightBtn.Parent = spookzScrollingFrame
+highlightBtn.BackgroundColor3 = Color3.new(0, 0, 0)
+highlightBtn.BorderColor3 = Color3.new(1, 0, 0)
+highlightBtn.Position = UDim2.new(0.05, 0, 0.25, 0)
+highlightBtn.Size = UDim2.new(0.9, 0, 0.15, 0)
+highlightBtn.Font = Enum.Font.SourceSansBold
+highlightBtn.Text = "Enable Highlights"
+highlightBtn.TextColor3 = Color3.new(1, 0, 0)
+highlightBtn.TextScaled = true
+
+local healthBarBtn = Instance.new("TextButton")
+healthBarBtn.Name = "HealthBarBtn"
+healthBarBtn.Parent = spookzScrollingFrame
+healthBarBtn.BackgroundColor3 = Color3.new(0, 0, 0)
+healthBarBtn.BorderColor3 = Color3.new(1, 0, 0)
+healthBarBtn.Position = UDim2.new(0.05, 0, 0.45, 0)
+healthBarBtn.Size = UDim2.new(0.9, 0, 0.15, 0)
+healthBarBtn.Font = Enum.Font.SourceSansBold
+healthBarBtn.Text = "Enable Health Bars"
+healthBarBtn.TextColor3 = Color3.new(1, 0, 0)
+healthBarBtn.TextScaled = true
+
+local staminaBtn = Instance.new("TextButton")
+staminaBtn.Name = "StaminaBtn"
+staminaBtn.Parent = spookzScrollingFrame
+staminaBtn.BackgroundColor3 = Color3.new(0, 0, 0)
+staminaBtn.BorderColor3 = Color3.new(1, 0, 0)
+staminaBtn.Position = UDim2.new(0.05, 0, 0.65, 0)
+staminaBtn.Size = UDim2.new(0.9, 0, 0.15, 0)
+staminaBtn.Font = Enum.Font.SourceSansBold
+staminaBtn.Text = "Infinite Stamina: OFF"
+staminaBtn.TextColor3 = Color3.new(1, 0, 0)
+staminaBtn.TextScaled = true
+
+local autoGenBtn = Instance.new("TextButton")
+autoGenBtn.Name = "AutoGenBtn"
+autoGenBtn.Parent = spookzScrollingFrame
+autoGenBtn.BackgroundColor3 = Color3.new(0, 0, 0)
+autoGenBtn.BorderColor3 = Color3.new(1, 0, 0)
+autoGenBtn.Position = UDim2.new(0.05, 0, 0.85, 0)
+autoGenBtn.Size = UDim2.new(0.9, 0, 0.15, 0)
+autoGenBtn.Font = Enum.Font.SourceSansBold
+autoGenBtn.Text = "Auto Generator: OFF"
+autoGenBtn.TextColor3 = Color3.new(1, 0, 0)
+autoGenBtn.TextScaled = true
+
+local genEspBtn = Instance.new("TextButton")
+genEspBtn.Name = "GenEspBtn"
+genEspBtn.Parent = spookzScrollingFrame
+genEspBtn.BackgroundColor3 = Color3.new(0, 0, 0)
+genEspBtn.BorderColor3 = Color3.new(1, 0, 0)
+genEspBtn.Position = UDim2.new(0.05, 0, 1.05, 0)
+genEspBtn.Size = UDim2.new(0.9, 0, 0.15, 0)
+genEspBtn.Font = Enum.Font.SourceSansBold
+genEspBtn.Text = "Generator ESP: OFF"
+genEspBtn.TextColor3 = Color3.new(1, 0, 0)
+genEspBtn.TextScaled = true
+
+local spookzStatus = Instance.new("TextLabel")
+spookzStatus.Name = "SpookzStatus"
+spookzStatus.Parent = spookzScrollingFrame
+spookzStatus.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+spookzStatus.BorderColor3 = Color3.new(1, 0, 0)
+spookzStatus.Position = UDim2.new(0.05, 0, 1.25, 0)
+spookzStatus.Size = UDim2.new(0.9, 0, 0.1, 0)
+spookzStatus.Font = Enum.Font.SourceSans
+spookzStatus.Text = "Status: Ready"
+spookzStatus.TextColor3 = Color3.new(1, 1, 1)
+spookzStatus.TextScaled = true
+
+local function playBlockAnimation()
+    local character = Players.LocalPlayer.Character
+    if not character then return end
+    
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+    if not humanoid then return end
+    
+    local animation = Instance.new("Animation")
+    animation.AnimationId = "rbxassetid://72722244508749"
+    
+    local animTrack = humanoid:LoadAnimation(animation)
+    animTrack:Play()
+    
+    spookzStatus.Text = "Block animation played!"
+    task.wait(3)
+    spookzStatus.Text = "Status: Ready"
+end
+
+local highlightEnabled = false
+local highlightConnections = {}
+
+local function ApplyHighlight(player)
+    if not highlightEnabled then return end
+    
+    local character = player.Character
+    if not character then
+        character = player.CharacterAdded:Wait()
+    end
+    
+    local highlighter = Instance.new("Highlight")
+    highlighter.Parent = character
+    highlighter.OutlineColor = Color3.fromRGB(255, 0, 0)
+    highlighter.FillTransparency = 0.5
+    highlighter.FillColor = player.TeamColor.Color
+
+    highlightConnections[player] = {
+        Highlighter = highlighter,
+        TeamConnection = player:GetPropertyChangedSignal("TeamColor"):Connect(function()
+            highlighter.FillColor = player.TeamColor.Color
+        end)
+    }
+end
+
+local function ToggleHighlights()
+    highlightEnabled = not highlightEnabled
+    
+    if highlightEnabled then
+        highlightBtn.Text = "Disable Highlights"
+        spookzStatus.Text = "Highlights enabled!"
+        
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= Players.LocalPlayer then
+                ApplyHighlight(player)
+            end
+        end
+        
+        Players.PlayerAdded:Connect(function(player)
+            if player ~= Players.LocalPlayer then
+                ApplyHighlight(player)
+            end
+        end)
+    else
+        highlightBtn.Text = "Enable Highlights"
+        spookzStatus.Text = "Highlights disabled!"
+        
+        for _, data in pairs(highlightConnections) do
+            if data.Highlighter and data.Highlighter.Parent then
+                data.Highlighter:Destroy()
+            end
+            if data.TeamConnection then
+                data.TeamConnection:Disconnect()
+            end
+        end
+        
+        highlightConnections = {}
+    end
+    
+    task.wait(3)
+    spookzStatus.Text = "Status: Ready"
+end
+
+local healthBarEnabled = false
+local healthBarConnections = {}
+
+local function createHealthBar(player)
+    if not healthBarEnabled then return end
+    
+    local character = player.Character
+    if not character then
+        character = player.CharacterAdded:Wait()
+    end
+    
+    local head = character:WaitForChild("Head")
+    local humanoid = character:WaitForChild("Humanoid")
+    
+    local billboard = Instance.new("BillboardGui")
+    billboard.Name = "HealthBarESP"
+    billboard.AlwaysOnTop = true
+    billboard.Size = UDim2.new(0, 100, 0, 30)
+    billboard.Adornee = head
+    billboard.ExtentsOffset = Vector3.new(0, 3, 0)
+    billboard.MaxDistance = 100
+    
+    local background = Instance.new("Frame")
+    background.Name = "Background"
+    background.Size = UDim2.new(1, 0, 0, 20)
+    background.Position = UDim2.new(0, 0, 0, 10)
+    background.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+    background.BorderSizePixel = 0
+    background.Parent = billboard
+    
+    local healthBar = Instance.new("Frame")
+    healthBar.Name = "HealthBar"
+    healthBar.Size = UDim2.new(1, -4, 1, -4)
+    healthBar.Position = UDim2.new(0, 2, 0, 2)
+    healthBar.BackgroundColor3 = Color3.new(0, 1, 0)
+    healthBar.BorderSizePixel = 0
+    healthBar.Parent = background
+    
+    local nameLabel = Instance.new("TextLabel")
+    nameLabel.Name = "NameLabel"
+    nameLabel.Size = UDim2.new(1, 0, 0, 10)
+    nameLabel.Position = UDim2.new(0, 0, 0, 0)
+    nameLabel.BackgroundTransparency = 1
+    nameLabel.Text = player.Name
+    nameLabel.TextColor3 = Color3.new(1, 1, 1)
+    nameLabel.Font = Enum.Font.GothamBold
+    nameLabel.TextSize = 12
+    nameLabel.Parent = billboard
+    
+    local function updateHealth()
+        local health = humanoid.Health
+        local maxHealth = humanoid.MaxHealth
+        local percentage = health / maxHealth
+        
+        healthBar.Size = UDim2.new(percentage, -4, 1, -4)
+        
+        if percentage > 0.5 then
+            healthBar.BackgroundColor3 = Color3.new(1 - (percentage - 0.5) * 2, 1, 0)
+        else
+            healthBar.BackgroundColor3 = Color3.new(1, percentage * 2, 0)
+        end
+    end
+    
+    local function onDeath()
+        billboard:Destroy()
+    end
+    
+    local healthConnection = humanoid.HealthChanged:Connect(updateHealth)
+    local deathConnection = humanoid.Died:Connect(onDeath)
+    
+    updateHealth()
+    billboard.Parent = character
+    
+    healthBarConnections[player] = {
+        Billboard = billboard,
+        HealthConnection = healthConnection,
+        DeathConnection = deathConnection
+    }
+end
+
+local function ToggleHealthBars()
+    healthBarEnabled = not healthBarEnabled
+    
+    if healthBarEnabled then
+        healthBarBtn.Text = "Disable Health Bars"
+        spookzStatus.Text = "Health bars enabled!"
+        
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= Players.LocalPlayer then
+                createHealthBar(player)
+            end
+        end
+        
+        Players.PlayerAdded:Connect(function(player)
+            if player ~= Players.LocalPlayer then
+                createHealthBar(player)
+            end
+        end)
+    else
+        healthBarBtn.Text = "Enable Health Bars"
+        spookzStatus.Text = "Health bars disabled!"
+        
+        for _, data in pairs(healthBarConnections) do
+            if data.Billboard and data.Billboard.Parent then
+                data.Billboard:Destroy()
+            end
+            if data.HealthConnection then
+                data.HealthConnection:Disconnect()
+            end
+            if data.DeathConnection then
+                data.DeathConnection:Disconnect()
+            end
+        end
+        
+        healthBarConnections = {}
+    end
+    
+    task.wait(3)
+    spookzStatus.Text = "Status: Ready"
+end
+
+local staminaEnabled = false
+local staminaLoop = nil
+local staminaModule = nil
+
+local function ToggleStamina()
+    staminaEnabled = not staminaEnabled
+    
+    if staminaEnabled then
+        if not staminaModule then
+            local success, result = pcall(function()
+                staminaModule = require(game.ReplicatedStorage.Systems.Character.Game.Sprinting)
+            end)
+            
+            if not success then
+                spookzStatus.Text = "Error: Couldn't find stamina module!"
+                staminaEnabled = false
+                return
+            end
+        end
+        
+        staminaBtn.Text = "Infinite Stamina: ON"
+        staminaBtn.TextColor3 = Color3.new(0, 1, 0)
+        spookzStatus.Text = "Infinite Stamina enabled!"
+        
+        staminaModule.StaminaLossDisabled = true
+        
+        staminaLoop = RunService.Heartbeat:Connect(function()
+            pcall(function()
+                staminaModule.Stamina = staminaModule.MaxStamina
+                staminaModule.StaminaChanged:Fire()
+            end)
+        end)
+    else
+        staminaBtn.Text = "Infinite Stamina: OFF"
+        staminaBtn.TextColor3 = Color3.new(1, 0, 0)
+        spookzStatus.Text = "Infinite Stamina disabled!"
+        
+        if staminaLoop then
+            staminaLoop:Disconnect()
+            staminaLoop = nil
+        end
+        
+        if staminaModule then
+            pcall(function()
+                staminaModule.StaminaLossDisabled = false
+            end)
+        end
+    end
+    
+    task.wait(3)
+    spookzStatus.Text = "Status: Ready"
+end
+
+local genEspEnabled = false
+local genEspConnections = {}
+
+local function ToggleGeneratorESP()
+    genEspEnabled = not genEspEnabled
+    
+    if genEspEnabled then
+        local function CreateHighlight()
+            local highlight = Instance.new("Highlight")
+            highlight.FillColor = Color3.fromRGB(255, 0, 0)
+            highlight.FillTransparency = 1
+            highlight.OutlineColor = Color3.fromRGB(255, 0, 0)
+            highlight.OutlineTransparency = 0
+            return highlight
+        end
+        
+        local function HighlightGenerators()
+            for _, highlight in pairs(genEspConnections) do
+                if highlight and highlight.Parent then
+                    highlight:Destroy()
+                end
+            end
+            genEspConnections = {}
+            
+            if workspace:FindFirstChild("Map") and 
+               workspace.Map:FindFirstChild("Ingame") and 
+               workspace.Map.Ingame:FindFirstChild("Map") then
+                
+                for _, v in ipairs(workspace.Map.Ingame.Map:GetChildren()) do
+                    if v.Name == "Generator" then
+                        local highlight = CreateHighlight()
+                        highlight.Parent = v
+                        highlight.Adornee = v
+                        table.insert(genEspConnections, highlight)
+                    end
+                end
+            end
+        end
+        
+        HighlightGenerators()
+        
+        genEspConnections.update = RunService.RenderStepped:Connect(HighlightGenerators)
+        
+        genEspBtn.Text = "Generator ESP: ON"
+        genEspBtn.TextColor3 = Color3.new(0, 1, 0)
+        spookzStatus.Text = "Generator ESP enabled!"
+    else
+        for _, highlight in pairs(genEspConnections) do
+            if highlight and highlight.Parent then
+                highlight:Destroy()
+            end
+        end
+        genEspConnections = {}
+        
+        genEspBtn.Text = "Generator ESP: OFF"
+        genEspBtn.TextColor3 = Color3.new(1, 0, 0)
+        spookzStatus.Text = "Generator ESP disabled!"
+    end
+    
+    task.wait(3)
+    spookzStatus.Text = "Status: Ready"
+end
+
+local autoGenEnabled = false
+local autoGenLoop = nil
+local autoGenScript = [[
+local isRunning = false
+local lastGenerator = nil
+local teleportDelay = 0.5
+local workDelay = 1.7
+
+local function findBestGenerator()
+    local bestGenerator = nil
+    local bestPriority = math.huge
+    
+    for _, v in ipairs(workspace.Map.Ingame.Map:GetChildren()) do
+        if v.Name == "Generator" and v.Progress.Value ~= 4 then
+            local priority = v.Progress.Value
+            
+            if priority < bestPriority then
+                bestGenerator = v
+                bestPriority = priority
+            end
+        end
+    end
+    
+    return bestGenerator
+end
+
+local function findAvailablePosition(generator)
+    local positions = {"Left", "Right", "Center"}
+    
+    for _, posName in ipairs(positions) do
+        local position = generator.Positions[posName]
+        local positionOccupied = false
+        
+        for _, player in ipairs(game.Players:GetPlayers()) do
+            if player ~= game.Players.LocalPlayer and player.Character then
+                local hrp = player.Character:FindFirstChild("HumanoidRootPart")
+                if hrp and (hrp.Position - position.Position).Magnitude < 5 then
+                    positionOccupied = true
+                    break
+                end
+            end
+        end
+        
+        if not positionOccupied then
+            return posName
+        end
+    end
+    
+    return nil
+end
+
+local function workOnGenerator(generator, positionName)
+    if not generator or not generator.Parent then return false end
+    
+    local position = generator.Positions[positionName]
+    if not position then return false end
+    
+    local char = game.Players.LocalPlayer.Character
+    if not char then return false end
+    
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return false end
+    
+    hrp.CFrame = position.CFrame
+    task.wait(teleportDelay)
+    
+    pcall(function() generator.Remotes.RF:InvokeServer("enter") end)
+    
+    for i = 1, 4 do
+        if not isRunning then break end
+        task.wait(workDelay)
+        pcall(function() generator.Remotes.RE:FireServer() end)
+    end
+    
+    task.wait(teleportDelay)
+    pcall(function() generator.Remotes.RF:InvokeServer("leave") end)
+    
+    return true
+end
+
+local function runGenerator()
+    while isRunning do
+        local generator = findBestGenerator()
+        if generator then
+            local positionName = findAvailablePosition(generator)
+            if positionName then
+                workOnGenerator(generator, positionName)
+            else
+                task.wait(2)
+            end
+        else
+            task.wait(5)
+        end
+    end
+end
+
+local function toggleAutoGen()
+    isRunning = not isRunning
+    if isRunning then
+        spawn(runGenerator)
+    end
+    return isRunning
+end
+
+return toggleAutoGen
+]]
+
+local function ToggleAutoGen()
+    autoGenEnabled = not autoGenEnabled
+    
+    if autoGenEnabled then
+        local success, func = pcall(loadstring, autoGenScript)
+        if success then
+            local result = func()
+            if result then
+                autoGenBtn.Text = "Auto Generator: ON"
+                autoGenBtn.TextColor3 = Color3.new(0, 1, 0)
+                spookzStatus.Text = "Auto Generator enabled - stand near a generator"
+            else
+                autoGenEnabled = false
+                autoGenBtn.Text = "Auto Generator: ERROR"
+                spookzStatus.Text = "Failed to start generator script"
+            end
+        else
+            autoGenEnabled = false
+            autoGenBtn.Text = "Auto Generator: ERROR"
+            spookzStatus.Text = "Failed to load generator script"
+        end
+    else
+        autoGenBtn.Text = "Auto Generator: OFF"
+        autoGenBtn.TextColor3 = Color3.new(1, 0, 0)
+        spookzStatus.Text = "Auto Generator disabled"
+    end
+    
+    task.wait(3)
+    spookzStatus.Text = "Status: Ready"
+end
+
+local danceBtn = Instance.new("TextButton")
+danceBtn.Name = "DanceBtn"
+danceBtn.Parent = pages.UselessPage
+danceBtn.BackgroundColor3 = Color3.new(0, 0, 0)
+danceBtn.BorderColor3 = Color3.new(1, 0, 0)
+danceBtn.Position = UDim2.new(0.05, 0, 0.05, 0)
+danceBtn.Size = UDim2.new(0.9, 0, 0.15, 0)
+danceBtn.Font = Enum.Font.SourceSansBold
+danceBtn.Text = "Hakari Dance: OFF"
+danceBtn.TextColor3 = Color3.new(1, 0, 0)
+danceBtn.TextScaled = true
+
+local danceOutline = Instance.new("UIStroke")
+danceOutline.Parent = danceBtn
+danceOutline.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+danceOutline.Thickness = 3
+danceOutline.LineJoinMode = Enum.LineJoinMode.Round
+
+spawn(function()
+    local hue = 0
+    while true do
+        danceOutline.Color = Color3.fromHSV(hue, 1, 1)
+        hue = (hue + 0.01) % 1
+        wait(0.05)
+    end
+end)
+
+local awShucksBtn = Instance.new("TextButton")
+awShucksBtn.Name = "AwShucksBtn"
+awShucksBtn.Parent = pages.UselessPage
+awShucksBtn.BackgroundColor3 = Color3.new(0, 0, 0)
+awShucksBtn.BorderColor3 = Color3.new(1, 0, 0)
+awShucksBtn.Position = UDim2.new(0.05, 0, 0.25, 0)
+awShucksBtn.Size = UDim2.new(0.9, 0, 0.15, 0)
+awShucksBtn.Font = Enum.Font.SourceSansBold
+awShucksBtn.Text = "Aw Shucks (deleted): OFF"
+awShucksBtn.TextColor3 = Color3.new(1, 0, 0)
+awShucksBtn.TextScaled = true
+
+local uselessStatus = Instance.new("TextLabel")
+uselessStatus.Name = "UselessStatus"
+uselessStatus.Parent = pages.UselessPage
+uselessStatus.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+uselessStatus.BorderColor3 = Color3.new(1, 0, 0)
+uselessStatus.Position = UDim2.new(0.05, 0, 0.45, 0)
+uselessStatus.Size = UDim2.new(0.9, 0, 0.1, 0)
+uselessStatus.Font = Enum.Font.SourceSans
+uselessStatus.Text = "Status: Ready"
+uselessStatus.TextColor3 = Color3.new(1, 1, 1)
+uselessStatus.TextScaled = true
+
+local isDancing = false
+local currentVFX = nil
+local currentSFX = nil
+local animationTrack = nil
+local originalWalkSpeed = 16
+local originalJumpPower = 50
+local originalAutoRotate = true
+
+local function toggleDance()
+    local character = game.Players.LocalPlayer.Character
+    local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+    
+    if not humanoid then return end
+    
+    isDancing = not isDancing
+    
+    if isDancing then
+        originalWalkSpeed = humanoid.WalkSpeed
+        originalJumpPower = humanoid.JumpPower
+        originalAutoRotate = humanoid.AutoRotate
+        
+        humanoid.WalkSpeed = 0
+        humanoid.JumpPower = 0
+        humanoid.AutoRotate = false
+        
+        local hrp = character:WaitForChild("HumanoidRootPart")
+        local testVFX = game.ReplicatedStorage.Assets.Emotes.HakariDance.HakariBeamEffect.Attachment:Clone()
+        testVFX.Parent = hrp
+        
+        for _, child in ipairs(testVFX:GetChildren()) do
+            if child:IsA("ParticleEmitter") then
+                child.Color = ColorSequence.new(Color3.fromRGB(0, 255, 0))
+                child:Emit(100)
+                child.Enabled = true
+            end
+        end
+        currentVFX = testVFX
+        
+        local sound = Instance.new("Sound")
+        sound.SoundId = "rbxassetid://109474987384441"
+        sound.Looped = true
+        sound.Parent = hrp
+        sound:Play()
+        currentSFX = sound
+        
+        local anim = Instance.new("Animation")
+        anim.AnimationId = "rbxassetid://138019937280193"
+        animationTrack = humanoid:LoadAnimation(anim)
+        animationTrack:Play()
+        
+        danceBtn.Text = "Hakari Dance: ON"
+        danceBtn.TextColor3 = Color3.new(0, 1, 0)
+    else
+        humanoid.WalkSpeed = originalWalkSpeed
+        humanoid.JumpPower = originalJumpPower
+        humanoid.AutoRotate = originalAutoRotate
+        
+        if character then
+            for _, part in pairs(character:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.Anchored = false
+                end
+            end
+        end
+        
+        if currentVFX then
+            currentVFX:Destroy()
+            currentVFX = nil
+        end
+        
+        if currentSFX then
+            currentSFX:Stop()
+            currentSFX:Destroy()
+            currentSFX = nil
+        end
+        
+        if animationTrack then
+            animationTrack:Stop()
+            animationTrack = nil
+        end
+        
+        danceBtn.Text = "Hakari Dance: OFF"
+        danceBtn.TextColor3 = Color3.new(1, 0, 0)
+    end
+end
+
+local isAwShucksPlaying = false
+local awShucksAnimTrack = nil
+local awShucksSound = nil
+
+local function toggleAwShucks()
+    local character = game.Players.LocalPlayer.Character
+    local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+    
+    if not humanoid then return end
+    
+    isAwShucksPlaying = not isAwShucksPlaying
+    
+    if isAwShucksPlaying then
+        if not awShucksSound then
+            awShucksSound = Instance.new("Sound")
+            awShucksSound.SoundId = "rbxassetid://123236721947419"
+            awShucksSound.Looped = true
+            awShucksSound.Parent = character:FindFirstChild("HumanoidRootPart") or character:WaitForChild("Head")
+            awShucksSound:Play()
+        end
+        
+        local anim = Instance.new("Animation")
+        anim.AnimationId = "rbxassetid://74238051754912"
+        awShucksAnimTrack = humanoid:LoadAnimation(anim)
+        awShucksAnimTrack:Play()
+        
+        awShucksBtn.Text = "Aw Shucks (deleted): ON"
+        awShucksBtn.TextColor3 = Color3.new(0, 1, 0)
+        uselessStatus.Text = "Playing Aw Shucks emote!"
+    else
+        if awShucksSound then
+            awShucksSound:Stop()
+            awShucksSound:Destroy()
+            awShucksSound = nil
+        end
+        
+        if awShucksAnimTrack then
+            awShucksAnimTrack:Stop()
+            awShucksAnimTrack = nil
+        end
+        
+        awShucksBtn.Text = "Aw Shucks (deleted): OFF"
+        awShucksBtn.TextColor3 = Color3.new(1, 0, 0)
+        uselessStatus.Text = "Stopped Aw Shucks emote"
+    end
+    
+    task.wait(3)
+    uselessStatus.Text = "Status: Ready"
+end
+
+blockBtn.MouseButton1Click:Connect(playBlockAnimation)
+highlightBtn.MouseButton1Click:Connect(ToggleHighlights)
+healthBarBtn.MouseButton1Click:Connect(ToggleHealthBars)
+staminaBtn.MouseButton1Click:Connect(ToggleStamina)
+autoGenBtn.MouseButton1Click:Connect(ToggleAutoGen)
+genEspBtn.MouseButton1Click:Connect(ToggleGeneratorESP)
+danceBtn.MouseButton1Click:Connect(toggleDance)
+awShucksBtn.MouseButton1Click:Connect(toggleAwShucks)
+
+local closeBtn = Instance.new("TextButton")
+closeBtn.Name = "CloseBtn"
+closeBtn.Parent = mainFrame
+closeBtn.BackgroundColor3 = Color3.new(0, 0, 0)
+closeBtn.BorderColor3 = Color3.new(1, 0, 0)
+closeBtn.Position = UDim2.new(0.05, 0, 0.85, 0)
+closeBtn.Size = UDim2.new(0.9, 0, 0.1, 0)
+closeBtn.Font = Enum.Font.SourceSansBold
+closeBtn.Text = "Close"
+closeBtn.TextColor3 = Color3.new(1, 0, 0)
+closeBtn.TextScaled = true
+
+closeBtn.MouseButton1Click:Connect(function()
+    gui:Destroy()
+end)
+
+local mainDragging, mainDragInput, mainDragStart, mainStartPos
+local function updateMainInput(input)
+    local delta = input.Position - mainDragStart
+    mainFrame.Position = UDim2.new(mainStartPos.X.Scale, mainStartPos.X.Offset + delta.X, mainStartPos.Y.Scale, mainStartPos.Y.Offset + delta.Y)
+end
+
+navFrame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        mainDragging = true
+        mainDragStart = input.Position
+        mainStartPos = mainFrame.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then mainDragging = false end
+        end)
+    end
+end)
+
+navFrame.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement and mainDragging then
+        mainDragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input == mainDragInput and mainDragging then updateMainInput(input) end
+end)
+
+local function createPlayerList(frame, yPosition, height)
+    local playerList = Instance.new("ScrollingFrame")
+    playerList.Name = "PlayerList"
+    playerList.Parent = frame
+    playerList.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+    playerList.BorderColor3 = Color3.new(1, 0, 0)
+    playerList.Position = UDim2.new(0.05, 0, yPosition, 0)
+    playerList.Size = UDim2.new(0.9, 0, height, 0)
+    playerList.ScrollBarThickness = 5
+    playerList.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    playerList.CanvasSize = UDim2.new(0, 0, 0, 0)
+
+    local listLayout = Instance.new("UIListLayout")
+    listLayout.Parent = playerList
+    listLayout.SortOrder = Enum.SortOrder.Name
+    listLayout.Padding = UDim.new(0, 5)
+
+    return playerList
+end
+
+local aimbotPlayerList = createPlayerList(pages.AimbotPage, 0.35, 0.5)
+local orbitPlayerList = createPlayerList(pages.OrbitPage, 0.35, 0.5)
+local tripminePlayerList = createPlayerList(pages.TripminePage, 0.35, 0.5)
+local teleportPlayerList = createPlayerList(pages.TeleportPage, 0.35, 0.5)
+
+local function createPlayerButton(player, frame, pageType)
+    local button = Instance.new("TextButton")
+    button.Name = player.Name
+    button.Parent = frame
+    button.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+    button.BorderColor3 = Color3.new(1, 0, 0)
+    button.Size = UDim2.new(1, -5, 0, 25)
+    button.Font = Enum.Font.SourceSans
+    button.Text = player.Name
+    button.TextColor3 = Color3.new(1, 1, 1)
+    button.TextScaled = true
+    
+    button.MouseButton1Click:Connect(function()
+        if pageType == "aimbot" then
+            aimbotInput.Text = player.Name
+            if aimbotEnabled then
+                currentTarget = player
+                aimbotStatus.Text = "Status: Targeting "..player.Name
+            end
+        elseif pageType == "orbit" then
+            orbitInput.Text = player.Name
+        elseif pageType == "tripmine" then
+            tripmineInput.Text = player.Name
+        elseif pageType == "teleport" then
+            teleportInput.Text = player.Name
+        end
+    end)
+end
+
+local function updatePlayerLists()
+    for _, child in ipairs(aimbotPlayerList:GetChildren()) do
+        if child:IsA("TextButton") then
+            child:Destroy()
+        end
+    end
+    for _, child in ipairs(orbitPlayerList:GetChildren()) do
+        if child:IsA("TextButton") then
+            child:Destroy()
+        end
+    end
+    for _, child in ipairs(tripminePlayerList:GetChildren()) do
+        if child:IsA("TextButton") then
+            child:Destroy()
+        end
+    end
+    for _, child in ipairs(teleportPlayerList:GetChildren()) do
+        if child:IsA("TextButton") then
+            child:Destroy()
+        end
+    end
+    
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= Players.LocalPlayer then
+            createPlayerButton(player, aimbotPlayerList, "aimbot")
+            createPlayerButton(player, orbitPlayerList, "orbit")
+            createPlayerButton(player, tripminePlayerList, "tripmine")
+            createPlayerButton(player, teleportPlayerList, "teleport")
+        end
+    end
+end
+
+Players.PlayerAdded:Connect(function(player)
+    if player ~= Players.LocalPlayer then
+        createPlayerButton(player, aimbotPlayerList, "aimbot")
+        createPlayerButton(player, orbitPlayerList, "orbit")
+        createPlayerButton(player, tripminePlayerList, "tripmine")
+        createPlayerButton(player, teleportPlayerList, "teleport")
+    end
+end)
+
+Players.PlayerRemoving:Connect(function(player)
+    local function removeFromList(list)
+        local button = list:FindFirstChild(player.Name)
+        if button then button:Destroy() end
+    end
+    
+    removeFromList(aimbotPlayerList)
+    removeFromList(orbitPlayerList)
+    removeFromList(tripminePlayerList)
+    removeFromList(teleportPlayerList)
+    
+    if currentTarget == player then
+        currentTarget = getClosestPlayer()
+    end
+    
+    if highlightConnections[player] then
+        if highlightConnections[player].Highlighter then
+            highlightConnections[player].Highlighter:Destroy()
+        end
+        if highlightConnections[player].TeamConnection then
+            highlightConnections[player].TeamConnection:Disconnect()
+        end
+        highlightConnections[player] = nil
+    end
+    
+    if healthBarConnections[player] then
+        if healthBarConnections[player].Billboard then
+            healthBarConnections[player].Billboard:Destroy()
+        end
+        if healthBarConnections[player].HealthConnection then
+            healthBarConnections[player].HealthConnection:Disconnect()
+        end
+        if healthBarConnections[player].DeathConnection then
+            healthBarConnections[player].DeathConnection:Disconnect()
+        end
+        healthBarConnections[player] = nil
+    end
+end)
+
+updatePlayerLists()
+
+local credit = Instance.new("TextLabel")
+credit.Name = "Credit"
+credit.Parent = gui
+credit.BackgroundTransparency = 1
+credit.Size = UDim2.new(0, 200, 0, 30)
+credit.Position = UDim2.new(0.5, -100, 1, -35)
+credit.Font = Enum.Font.SourceSansBold
+credit.Text = "c00lgui Reborn by SpookzWasHere and official_mafioso"
+credit.TextColor3 = Color3.new(1, 0, 0)
+credit.TextSize = 18
+
+game.Players.LocalPlayer.CharacterAdded:Connect(function(character)
+    if isDancing then
+        task.wait(1)
+        toggleDance()
+    end
+    if isAwShucksPlaying then
+        task.wait(1)
+        toggleAwShucks()
+    end
+end)
+
+gui.Destroying:Connect(function()
+    if isDancing then
+        toggleDance()
+    end
+    if isAwShucksPlaying then
+        toggleAwShucks()
+    end
+end)
