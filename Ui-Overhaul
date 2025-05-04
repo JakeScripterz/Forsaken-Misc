@@ -16,7 +16,7 @@ local UserInputService = game:GetService("UserInputService")
 local ACCENT_COLOR = Color3.fromRGB(255, 0, 0)
 local BG_COLOR = Color3.fromRGB(20, 20, 20)
 local CURRENT_USER = Players.LocalPlayer.Name
-local VERSION = "v2.0"
+local VERSION = "v8"
 
 -- Create main GUI elements
 local ScreenGui = Instance.new("ScreenGui")
@@ -89,7 +89,7 @@ LoadingTitle.BackgroundTransparency = 1
 LoadingTitle.Position = UDim2.new(0, 0, 0, 20)
 LoadingTitle.Size = UDim2.new(1, 0, 0, 30)
 LoadingTitle.Font = Enum.Font.Code
-LoadingTitle.Text = "SYSTEM INFILTRATION " .. VERSION
+LoadingTitle.Text = "C00lgui " .. VERSION
 LoadingTitle.TextColor3 = ACCENT_COLOR
 LoadingTitle.TextSize = 24
 LoadingTitle.ZIndex = 1001
