@@ -1,9 +1,16 @@
 --[[
-    Title: Complete Hacker Interface v2.0 (Part 1 - Core and Loading)
+    Title: Complete Hacker Interface v2.0
     Author: JakeScripterz
-    Last Modified: 2025-05-04 12:03:38 UTC
-    Description: Core setup and loading screen implementation
+    Last Modified: 2025-05-04 12:11:46 UTC
+    Description: Advanced hacking interface with executor support
+    Username: JakeScripterz
 ]]
+
+-- Protection Check
+if getgenv().HackerInterfaceLoaded then
+    return
+end
+getgenv().HackerInterfaceLoaded = true
 
 -- Services
 local Players = game:GetService("Players")
@@ -14,17 +21,103 @@ local UserInputService = game:GetService("UserInputService")
 -- Constants
 local ACCENT_COLOR = Color3.fromRGB(255, 0, 0)
 local BG_COLOR = Color3.fromRGB(20, 20, 20)
-local CURRENT_USER = Players.LocalPlayer.Name
+local CURRENT_USER = (game:GetService("Players").LocalPlayer.Name or "User")
 local VERSION = "v8"
 
--- Create main GUI elements
+-- Utility Functions
+local function safeWait(duration)
+    local start = tick()
+    while tick() - start < duration do
+        RunService.Heartbeat:Wait()
+    end
+end
+
+local function createButton(parent, text, position)
+    local button = Instance.new("TextButton")
+    button.Name = text .. "Button"
+    button.Parent = parent
+    button.BackgroundColor3 = BG_COLOR
+    button.BorderColor3 = ACCENT_COLOR
+    button.Position = position
+    button.Size = UDim2.new(0.9, 0, 0.08, 0)
+    button.Font = Enum.Font.Code
+    button.Text = text
+    button.TextColor3 = ACCENT_COLOR
+    button.TextSize = 14
+    button.AutoButtonColor = false
+    
+    -- Hover Effect
+    button.MouseEnter:Connect(function()
+        game:GetService("TweenService"):Create(button, TweenInfo.new(0.3), {
+            BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+        }):Play()
+    end)
+    
+    button.MouseLeave:Connect(function()
+        game:GetService("TweenService"):Create(button, TweenInfo.new(0.3), {
+            BackgroundColor3 = BG_COLOR
+        }):Play()
+    end)
+    
+    return button
+end
+
+local function createInput(parent, placeholder, position)
+    local input = Instance.new("TextBox")
+    input.Name = placeholder .. "Input"
+    input.Parent = parent
+    input.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    input.BorderColor3 = ACCENT_COLOR
+    input.Position = position
+    input.Size = UDim2.new(0.9, 0, 0.08, 0)
+    input.Font = Enum.Font.Code
+    input.PlaceholderText = placeholder
+    input.Text = ""
+    input.TextColor3 = ACCENT_COLOR
+    input.TextSize = 14
+    return input
+end
+
+local function createStatus(parent, position)
+    local status = Instance.new("TextLabel")
+    status.Name = "StatusLabel"
+    status.Parent = parent
+    status.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    status.BorderColor3 = ACCENT_COLOR
+    status.Position = position
+    status.Size = UDim2.new(0.9, 0, 0.08, 0)
+    status.Font = Enum.Font.Code
+    status.Text = "Status: Ready"
+    status.TextColor3 = ACCENT_COLOR
+    status.TextSize = 14
+    return status
+end
+
+-- Create GUI
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "HackerInterface"
-ScreenGui.Parent = game:GetService("CoreGui")
 ScreenGui.ResetOnSpawn = false
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
--- Loading Screen Setup
+-- Try different methods to parent the ScreenGui based on executor
+local success, err = pcall(function()
+    if syn then -- Synapse X
+        syn.protect_gui(ScreenGui)
+        ScreenGui.Parent = game:GetService("CoreGui")
+    elseif gethui then -- Some other executors
+        ScreenGui.Parent = gethui()
+    elseif game:GetService("CoreGui"):FindFirstChild("RobloxGui") then -- Fallback
+        ScreenGui.Parent = game:GetService("CoreGui").RobloxGui
+    else
+        ScreenGui.Parent = game:GetService("CoreGui")
+    end
+end)
+
+if not success then
+    ScreenGui.Parent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
+end
+
+-- Loading Screen
 local LoadingFrame = Instance.new("Frame")
 LoadingFrame.Name = "LoadingFrame"
 LoadingFrame.Parent = ScreenGui
@@ -89,60 +182,7 @@ LoadingFill.BorderSizePixel = 0
 LoadingFill.Size = UDim2.new(0, 0, 1, 0)
 LoadingFill.ZIndex = 1002
 
--- Utility Functions
-local function safeWait(duration)
-    local start = tick()
-    while tick() - start < duration do
-        RunService.Heartbeat:Wait()
-    end
-end
-
--- Loading Sequence Function
-local function runLoadingSequence()
-    local loadingSteps = {
-        {text = "Initializing system...", time = 0.5},
-        {text = "Loading modules...", time = 0.5},
-        {text = "Bypassing security...", time = 0.7},
-        {text = "Accessing mainframe...", time = 0.6},
-        {text = "Establishing connection...", time = 0.5},
-        {text = "System compromised...", time = 0.8},
-        {text = "Ready to execute", time = 1.0}
-    }
-    
-    for i, step in ipairs(loadingSteps) do
-        if not LoadingStatus or not LoadingStatus.Parent then return end
-        LoadingStatus.Text = step.text
-        TweenService:Create(LoadingFill, TweenInfo.new(step.time), {
-            Size = UDim2.new(i/#loadingSteps, 0, 1, 0)
-        }):Play()
-        safeWait(step.time)
-    end
-    
-    return true
-end
-
-return {
-    ScreenGui = ScreenGui,
-    LoadingFrame = LoadingFrame,
-    safeWait = safeWait,
-    runLoadingSequence = runLoadingSequence,
-    ACCENT_COLOR = ACCENT_COLOR,
-    BG_COLOR = BG_COLOR
-}
---[[
-    Title: Complete Hacker Interface v2.0 (Part 2 - Main Interface)
-    Author: JakeScripterz
-    Last Modified: 2025-05-04 12:03:38 UTC
-    Description: Main interface and tab system implementation
-]]
-
--- Get Part 1 variables
-local Part1 = require(script.Parent.Part1)
-local ScreenGui = Part1.ScreenGui
-local ACCENT_COLOR = Part1.ACCENT_COLOR
-local BG_COLOR = Part1.BG_COLOR
-
--- Main Interface Setup
+-- Main Interface
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
 MainFrame.Parent = ScreenGui
@@ -153,8 +193,7 @@ MainFrame.Size = UDim2.new(0, 400, 0, 300)
 MainFrame.Visible = false
 MainFrame.Active = true
 MainFrame.Draggable = true
-
--- Scanner Effect
+-- Scanner Effect & UI Elements
 local ScannerEffect = Instance.new("Frame")
 ScannerEffect.Name = "ScannerEffect"
 ScannerEffect.Parent = MainFrame
@@ -178,23 +217,24 @@ Title.Parent = TitleBar
 Title.BackgroundTransparency = 1
 Title.Size = UDim2.new(1, -25, 1, 0)
 Title.Font = Enum.Font.Code
-Title.Text = "C00lGui v8"
+Title.Text = "H4CKER INTERFACE " .. VERSION
 Title.TextColor3 = ACCENT_COLOR
 Title.TextSize = 16
 
-local MinimizeBtn = Instance.new("TextButton")
-MinimizeBtn.Name = "MinimizeBtn"
-MinimizeBtn.Parent = TitleBar
-MinimizeBtn.BackgroundColor3 = BG_COLOR
-MinimizeBtn.BorderColor3 = ACCENT_COLOR
-MinimizeBtn.Position = UDim2.new(1, -25, 0, 0)
-MinimizeBtn.Size = UDim2.new(0, 25, 1, 0)
-MinimizeBtn.Font = Enum.Font.Code
-MinimizeBtn.Text = "-"
-MinimizeBtn.TextColor3 = ACCENT_COLOR
-MinimizeBtn.TextSize = 20
+-- Close and Minimize Buttons
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Name = "CloseBtn"
+CloseBtn.Parent = TitleBar
+CloseBtn.BackgroundColor3 = BG_COLOR
+CloseBtn.BorderColor3 = ACCENT_COLOR
+CloseBtn.Position = UDim2.new(1, -25, 0, 0)
+CloseBtn.Size = UDim2.new(0, 25, 1, 0)
+CloseBtn.Font = Enum.Font.Code
+CloseBtn.Text = "×"
+CloseBtn.TextColor3 = ACCENT_COLOR
+CloseBtn.TextSize = 20
 
--- Create Tab Container
+-- Tab System
 local TabContainer = Instance.new("Frame")
 TabContainer.Name = "TabContainer"
 TabContainer.Parent = MainFrame
@@ -203,7 +243,6 @@ TabContainer.BorderColor3 = ACCENT_COLOR
 TabContainer.Position = UDim2.new(0, 10, 0, 40)
 TabContainer.Size = UDim2.new(1, -20, 0, 30)
 
--- Content Container
 local ContentContainer = Instance.new("Frame")
 ContentContainer.Name = "ContentContainer"
 ContentContainer.Parent = MainFrame
@@ -212,12 +251,12 @@ ContentContainer.BorderColor3 = ACCENT_COLOR
 ContentContainer.Position = UDim2.new(0, 10, 0, 80)
 ContentContainer.Size = UDim2.new(1, -20, 1, -90)
 
--- Tab System
+-- Tab Setup
 local tabs = {
     {name = "Aimbot", color = ACCENT_COLOR},
     {name = "Orbit", color = ACCENT_COLOR},
-    {name = "Trip", color = ACCENT_COLOR},
     {name = "ESP", color = ACCENT_COLOR},
+    {name = "Trip", color = ACCENT_COLOR},
     {name = "Misc", color = ACCENT_COLOR}
 }
 
@@ -237,6 +276,7 @@ for index, tab in ipairs(tabs) do
     button.Text = tab.name
     button.TextColor3 = tab.color
     button.TextSize = 14
+    button.AutoButtonColor = false
     buttons[tab.name] = button
     
     local page = Instance.new("ScrollingFrame")
@@ -251,105 +291,38 @@ for index, tab in ipairs(tabs) do
     page.Visible = false
     pages[tab.name] = page
 end
-
--- Show first page by default
-pages["Aimbot"].Visible = true
-buttons["Aimbot"].BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-
--- Tab Switching Logic
-for name, button in pairs(buttons) do
-    button.MouseButton1Click:Connect(function()
-        for _, page in pairs(pages) do
-            page.Visible = false
-        end
-        for _, btn in pairs(buttons) do
-            btn.BackgroundColor3 = BG_COLOR
-        end
-        pages[name].Visible = true
-        button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    end)
-end
-
-return {
-    MainFrame = MainFrame,
-    pages = pages,
-    ScannerEffect = ScannerEffect
-}
---[[
-    Title: Complete Hacker Interface v2.0 (Part 3 - Aimbot)
-    Author: JakeScripterz
-    Last Modified: 2025-05-04 12:04:54 UTC
-    Description: Aimbot functionality implementation
-]]
-
--- Get previous parts
-local Part1 = require(script.Parent.Part1)
-local Part2 = require(script.Parent.Part2)
-local ACCENT_COLOR = Part1.ACCENT_COLOR
-local BG_COLOR = Part1.BG_COLOR
-local pages = Part2.pages
-
--- Utility Functions
-local function createButton(parent, text, position)
-    local button = Instance.new("TextButton")
-    button.Name = text .. "Button"
-    button.Parent = parent
-    button.BackgroundColor3 = BG_COLOR
-    button.BorderColor3 = ACCENT_COLOR
-    button.Position = position
-    button.Size = UDim2.new(0.9, 0, 0.08, 0)
-    button.Font = Enum.Font.Code
-    button.Text = text
-    button.TextColor3 = ACCENT_COLOR
-    button.TextSize = 14
-    return button
-end
-
-local function createInput(parent, placeholder, position)
-    local input = Instance.new("TextBox")
-    input.Name = placeholder .. "Input"
-    input.Parent = parent
-    input.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    input.BorderColor3 = ACCENT_COLOR
-    input.Position = position
-    input.Size = UDim2.new(0.9, 0, 0.08, 0)
-    input.Font = Enum.Font.Code
-    input.PlaceholderText = placeholder
-    input.Text = ""
-    input.TextColor3 = ACCENT_COLOR
-    input.TextSize = 14
-    return input
-end
-
-local function createStatus(parent, position)
-    local status = Instance.new("TextLabel")
-    status.Name = "StatusLabel"
-    status.Parent = parent
-    status.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    status.BorderColor3 = ACCENT_COLOR
-    status.Position = position
-    status.Size = UDim2.new(0.9, 0, 0.08, 0)
-    status.Font = Enum.Font.Code
-    status.Text = "Status: Ready"
-    status.TextColor3 = ACCENT_COLOR
-    status.TextSize = 14
-    return status
-end
-
 -- Aimbot Implementation
-local function implementAimbot()
+local function setupAimbot()
     local page = pages["Aimbot"]
-    
     local targetInput = createInput(page, "Enter target username (optional)", UDim2.new(0.05, 0, 0.05, 0))
     local toggleBtn = createButton(page, "AIMBOT: OFF", UDim2.new(0.05, 0, 0.15, 0))
     local status = createStatus(page, UDim2.new(0.05, 0, 0.25, 0))
     
+    -- FOV Slider
+    local fovSlider = Instance.new("Frame")
+    fovSlider.Name = "FOVSlider"
+    fovSlider.Parent = page
+    fovSlider.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    fovSlider.BorderColor3 = ACCENT_COLOR
+    fovSlider.Position = UDim2.new(0.05, 0, 0.35, 0)
+    fovSlider.Size = UDim2.new(0.9, 0, 0.05, 0)
+    
+    local fovKnob = Instance.new("TextButton")
+    fovKnob.Name = "FOVKnob"
+    fovKnob.Parent = fovSlider
+    fovKnob.BackgroundColor3 = ACCENT_COLOR
+    fovKnob.Size = UDim2.new(0.1, 0, 1, 0)
+    fovKnob.Text = ""
+    
     local aimbotEnabled = false
     local currentTarget = nil
     local aimbotConnection = nil
+    local fov = 90
     
+    -- Aimbot logic here (continued in next part)
+    -- Continuing Aimbot Implementation
     local function getClosestPlayer()
-        local localPlayer = game:GetService("Players").LocalPlayer
+        local localPlayer = Players.LocalPlayer
         local localCharacter = localPlayer.Character
         if not localCharacter then return nil end
         
@@ -358,8 +331,9 @@ local function implementAimbot()
         
         local closestPlayer = nil
         local closestDistance = math.huge
+        local closestAngle = fov
         
-        for _, player in pairs(game:GetService("Players"):GetPlayers()) do
+        for _, player in pairs(Players:GetPlayers()) do
             if player ~= localPlayer and player.Character then
                 local character = player.Character
                 local humanoid = character:FindFirstChildOfClass("Humanoid")
@@ -367,8 +341,11 @@ local function implementAimbot()
                 
                 if humanoid and humanoid.Health > 0 and head then
                     local distance = (head.Position - localHead.Position).Magnitude
-                    if distance < closestDistance then
+                    local angle = math.deg(math.acos(localHead.CFrame.LookVector:Dot((head.Position - localHead.Position).Unit)))
+                    
+                    if angle < closestAngle and distance < closestDistance then
                         closestDistance = distance
+                        closestAngle = angle
                         closestPlayer = player
                     end
                 end
@@ -393,7 +370,7 @@ local function implementAimbot()
             local humanoid = character:FindFirstChildOfClass("Humanoid")
             
             if head and humanoid and humanoid.Health > 0 then
-                local localCharacter = game:GetService("Players").LocalPlayer.Character
+                local localCharacter = Players.LocalPlayer.Character
                 if localCharacter then
                     local humanoidRootPart = localCharacter:FindFirstChild("HumanoidRootPart")
                     if humanoidRootPart then
@@ -407,6 +384,36 @@ local function implementAimbot()
         end
     end
     
+    -- FOV Slider functionality
+    local dragging = false
+    local dragStart = nil
+    local startPos = nil
+    
+    fovKnob.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = fovKnob.Position
+        end
+    end)
+    
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local delta = input.Position - dragStart
+            local xPos = math.clamp(startPos.X.Scale + delta.X / fovSlider.AbsoluteSize.X, 0, 0.9)
+            fovKnob.Position = UDim2.new(xPos, 0, 0, 0)
+            fov = 30 + (xPos * 150) -- FOV range: 30-180
+            status.Text = "FOV: " .. math.floor(fov) .. "°"
+        end
+    end)
+    
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+    
+    -- Toggle button functionality
     toggleBtn.MouseButton1Click:Connect(function()
         aimbotEnabled = not aimbotEnabled
         
@@ -416,7 +423,7 @@ local function implementAimbot()
             
             local targetName = targetInput.Text
             if targetName ~= "" then
-                currentTarget = game:GetService("Players"):FindFirstChild(targetName)
+                currentTarget = Players:FindFirstChild(targetName)
                 if currentTarget then
                     status.Text = "Status: Targeting " .. targetName
                 else
@@ -427,7 +434,7 @@ local function implementAimbot()
                 currentTarget = getClosestPlayer()
             end
             
-            aimbotConnection = game:GetService("RunService").Heartbeat:Connect(updateAimbot)
+            aimbotConnection = RunService.Heartbeat:Connect(updateAimbot)
         else
             toggleBtn.Text = "AIMBOT: OFF"
             toggleBtn.TextColor3 = ACCENT_COLOR
@@ -441,32 +448,8 @@ local function implementAimbot()
         end
     end)
 end
-
-return {
-    implementAimbot = implementAimbot,
-    createButton = createButton,
-    createInput = createInput,
-    createStatus = createStatus
-}
---[[
-    Title: Complete Hacker Interface v2.0 (Part 4 - Orbit)
-    Author: JakeScripterz
-    Last Modified: 2025-05-04 12:04:54 UTC
-    Description: Orbit functionality implementation
-]]
-
--- Get previous parts
-local Part1 = require(script.Parent.Part1)
-local Part2 = require(script.Parent.Part2)
-local Part3 = require(script.Parent.Part3)
-local pages = Part2.pages
-local createButton = Part3.createButton
-local createInput = Part3.createInput
-local createStatus = Part3.createStatus
-local ACCENT_COLOR = Part1.ACCENT_COLOR
-
 -- Orbit Implementation
-local function implementOrbit()
+local function setupOrbit()
     local page = pages["Orbit"]
     
     local targetInput = createInput(page, "Enter target username", UDim2.new(0.05, 0, 0.05, 0))
@@ -511,11 +494,13 @@ local function implementOrbit()
     local orbitDistance = 5
     local orbitSpeed = 0.1
     
+    -- Orbit logic continues in next part...
+    -- Continuing Orbit Implementation
     local function updateOrbit()
         if not orbitEnabled or not orbitTarget then return end
         
         local targetChar = orbitTarget.Character
-        local localChar = game:GetService("Players").LocalPlayer.Character
+        local localChar = Players.LocalPlayer.Character
         
         if targetChar and localChar then
             local targetRoot = targetChar:FindFirstChild("HumanoidRootPart")
@@ -539,7 +524,7 @@ local function implementOrbit()
         end
     end
     
-    -- Slider functionality
+    -- Slider functionality for orbit controls
     local function setupSlider(slider, knob, callback)
         local dragging = false
         local dragStart = nil
@@ -553,7 +538,7 @@ local function implementOrbit()
             end
         end)
         
-        game:GetService("UserInputService").InputChanged:Connect(function(input)
+        UserInputService.InputChanged:Connect(function(input)
             if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
                 local delta = input.Position - dragStart
                 local xPos = math.clamp(startPos.X.Scale + delta.X / slider.AbsoluteSize.X, 0, 0.9)
@@ -562,7 +547,7 @@ local function implementOrbit()
             end
         end)
         
-        game:GetService("UserInputService").InputEnded:Connect(function(input)
+        UserInputService.InputEnded:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 then
                 dragging = false
             end
@@ -570,12 +555,12 @@ local function implementOrbit()
     end
     
     setupSlider(distanceSlider, distanceKnob, function(value)
-        orbitDistance = 2 + (value * 8)
+        orbitDistance = 2 + (value * 18) -- Range: 2-20
         status.Text = "Distance: " .. string.format("%.1f", orbitDistance)
     end)
     
     setupSlider(speedSlider, speedKnob, function(value)
-        orbitSpeed = 0.05 + (value * 0.25)
+        orbitSpeed = 0.05 + (value * 0.45) -- Range: 0.05-0.5
         status.Text = "Speed: " .. string.format("%.2f", orbitSpeed)
     end)
     
@@ -585,12 +570,12 @@ local function implementOrbit()
         if orbitEnabled then
             local targetName = targetInput.Text
             if targetName ~= "" then
-                orbitTarget = game:GetService("Players"):FindFirstChild(targetName)
+                orbitTarget = Players:FindFirstChild(targetName)
                 if orbitTarget then
                     toggleBtn.Text = "ORBIT: ON"
                     toggleBtn.TextColor3 = Color3.fromRGB(0, 255, 0)
                     status.Text = "Status: Orbiting " .. targetName
-                    orbitConnection = game:GetService("RunService").Heartbeat:Connect(updateOrbit)
+                    orbitConnection = RunService.Heartbeat:Connect(updateOrbit)
                 else
                     status.Text = "Status: Player not found!"
                     orbitEnabled = false
@@ -611,131 +596,585 @@ local function implementOrbit()
         end
     end)
 end
-
-return {
-    implementOrbit = implementOrbit
-}
---[[
-    Title: Complete Hacker Interface v2.0 (Part 5 - Final Setup)
-    Author: JakeScripterz
-    Last Modified: 2025-05-04 12:04:54 UTC
-    Description: Final implementation and initialization
-]]
-
--- Get previous parts
-local Part1 = require(script.Parent.Part1)
-local Part2 = require(script.Parent.Part2)
-local Part3 = require(script.Parent.Part3)
-local Part4 = require(script.Parent.Part4)
-
--- Implementation of remaining features
-local function implementESP()
-    local page = Part2.pages["ESP"]
-    local toggleBtn = Part3.createButton(page, "ESP: OFF", UDim2.new(0.05, 0, 0.05, 0))
-    local status = Part3.createStatus(page, UDim2.new(0.05, 0, 0.15, 0))
+-- ESP Implementation
+local function setupESP()
+    local page = pages["ESP"]
     
-    -- Basic ESP implementation
+    local toggleBtn = createButton(page, "ESP: OFF", UDim2.new(0.05, 0, 0.05, 0))
+    local teamCheckbox = createButton(page, "Team ESP: OFF", UDim2.new(0.05, 0, 0.15, 0))
+    local status = createStatus(page, UDim2.new(0.05, 0, 0.25, 0))
+    
+    local espEnabled = false
+    local teamESP = false
+    local espConnection = nil
+    local espObjects = {}
+    
+    local function createESPBox(player)
+        local box = Drawing.new("Square")
+        box.Visible = false
+        box.Color = Color3.fromRGB(255, 0, 0)
+        box.Thickness = 1
+        box.Filled = false
+        box.Transparency = 1
+        
+        local name = Drawing.new("Text")
+        name.Visible = false
+        name.Color = Color3.fromRGB(255, 0, 0)
+        name.Size = 14
+        name.Center = true
+        name.Outline = true
+        
+        return {
+            box = box,
+            name = name,
+            player = player
+        }
+    end
+    
+    local function updateESP()
+        for _, obj in pairs(espObjects) do
+            local character = obj.player.Character
+            if character and character:FindFirstChild("HumanoidRootPart") and character:FindFirstChild("Humanoid") then
+                local humanoid = character:FindFirstChild("Humanoid")
+                local root = character:FindFirstChild("HumanoidRootPart")
+                
+                local screenPos, onScreen = workspace.CurrentCamera:WorldToViewportPoint(root.Position)
+                
+                if onScreen and humanoid.Health > 0 then
+                    local size = Vector2.new(2000 / screenPos.Z, 3000 / screenPos.Z)
+                    local pos = Vector2.new(screenPos.X - size.X / 2, screenPos.Y - size.Y / 2)
+                    
+                    obj.box.Size = size
+                    obj.box.Position = pos
+                    obj.box.Visible = true
+                    
+                    obj.name.Position = Vector2.new(screenPos.X, screenPos.Y - size.Y / 2 - 15)
+                    obj.name.Text = string.format("%s\nHealth: %d", obj.player.Name, humanoid.Health)
+                    obj.name.Visible = true
+                    
+                    if teamESP and obj.player.Team then
+                        obj.box.Color = obj.player.Team.TeamColor.Color
+                        obj.name.Color = obj.player.Team.TeamColor.Color
+                    else
+                        obj.box.Color = Color3.fromRGB(255, 0, 0)
+                        obj.name.Color = Color3.fromRGB(255, 0, 0)
+                    end
+                else
+                    obj.box.Visible = false
+                    obj.name.Visible = false
+                end
+            else
+                obj.box.Visible = false
+                obj.name.Visible = false
+            end
+        end
+    end
+    -- Continuing ESP Implementation
+    local function cleanupESP()
+        for _, obj in pairs(espObjects) do
+            obj.box:Remove()
+            obj.name:Remove()
+        end
+        table.clear(espObjects)
+    end
+    
+    local function setupESPForPlayer(player)
+        if player ~= Players.LocalPlayer then
+            espObjects[player] = createESPBox(player)
+        end
+    end
+    
     toggleBtn.MouseButton1Click:Connect(function()
-        local enabled = toggleBtn.Text == "ESP: OFF"
-        toggleBtn.Text = enabled and "ESP: ON" or "ESP: OFF"
-        toggleBtn.TextColor3 = enabled and Color3.fromRGB(0, 255, 0) or Part1.ACCENT_COLOR
-        status.Text = "Status: ESP " .. (enabled and "Enabled" or "Disabled")
+        espEnabled = not espEnabled
+        
+        if espEnabled then
+            toggleBtn.Text = "ESP: ON"
+            toggleBtn.TextColor3 = Color3.fromRGB(0, 255, 0)
+            status.Text = "Status: ESP Enabled"
+            
+            -- Setup ESP for existing players
+            for _, player in ipairs(Players:GetPlayers()) do
+                setupESPForPlayer(player)
+            end
+            
+            -- Connect ESP update
+            espConnection = RunService.RenderStepped:Connect(updateESP)
+            
+            -- Handle new players
+            Players.PlayerAdded:Connect(setupESPForPlayer)
+            
+            -- Handle removing players
+            Players.PlayerRemoving:Connect(function(player)
+                if espObjects[player] then
+                    espObjects[player].box:Remove()
+                    espObjects[player].name:Remove()
+                    espObjects[player] = nil
+                end
+            end)
+        else
+            toggleBtn.Text = "ESP: OFF"
+            toggleBtn.TextColor3 = ACCENT_COLOR
+            status.Text = "Status: ESP Disabled"
+            
+            if espConnection then
+                espConnection:Disconnect()
+                espConnection = nil
+            end
+            
+            cleanupESP()
+        end
+    end)
+    
+    teamCheckbox.MouseButton1Click:Connect(function()
+        teamESP = not teamESP
+        teamCheckbox.Text = "Team ESP: " .. (teamESP and "ON" or "OFF")
+        teamCheckbox.TextColor3 = teamESP and Color3.fromRGB(0, 255, 0) or ACCENT_COLOR
     end)
 end
-
-local function implementTripPage()
-    local page = Part2.pages["Trip"]
-    local toggleBtn = Part3.createButton(page, "TRIP: OFF", UDim2.new(0.05, 0, 0.05, 0))
-    local status = Part3.createStatus(page, UDim2.new(0.05, 0, 0.15, 0))
+-- Trip Implementation
+local function setupTrip()
+    local page = pages["Trip"]
     
-    -- Basic Trip implementation
+    local toggleBtn = createButton(page, "TRIP: OFF", UDim2.new(0.05, 0, 0.05, 0))
+    local intensitySlider = Instance.new("Frame")
+    intensitySlider.Name = "IntensitySlider"
+    intensitySlider.Parent = page
+    intensitySlider.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    intensitySlider.BorderColor3 = ACCENT_COLOR
+    intensitySlider.Position = UDim2.new(0.05, 0, 0.15, 0)
+    intensitySlider.Size = UDim2.new(0.9, 0, 0.05, 0)
+    
+    local intensityKnob = Instance.new("TextButton")
+    intensityKnob.Name = "IntensityKnob"
+    intensityKnob.Parent = intensitySlider
+    intensityKnob.BackgroundColor3 = ACCENT_COLOR
+    intensityKnob.Size = UDim2.new(0.1, 0, 1, 0)
+    intensityKnob.Text = ""
+    
+    local status = createStatus(page, UDim2.new(0.05, 0, 0.25, 0))
+    
+    local tripEnabled = false
+    local tripIntensity = 0.5
+    local tripConnection = nil
+    local originalColors = {}
+    
+    -- Slider functionality
+    local dragging = false
+    local dragStart = nil
+    local startPos = nil
+    
+    intensityKnob.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = intensityKnob.Position
+        end
+    end)
+    
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local delta = input.Position - dragStart
+            local xPos = math.clamp(startPos.X.Scale + delta.X / intensitySlider.AbsoluteSize.X, 0, 0.9)
+            intensityKnob.Position = UDim2.new(xPos, 0, 0, 0)
+            tripIntensity = xPos + 0.1 -- Range: 0.1-1
+            status.Text = "Intensity: " .. string.format("%.1f", tripIntensity)
+        end
+    end)
+    
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+    
+    local function updateTrip()
+        local time = tick()
+        for part, originalColor in pairs(originalColors) do
+            if part and part.Parent then
+                local hue = (math.sin(time * tripIntensity + part.Position.X/10) + 1) / 2
+                part.Color = Color3.fromHSV(hue, 1, 1)
+            else
+                originalColors[part] = nil
+            end
+        end
+    end
+    
     toggleBtn.MouseButton1Click:Connect(function()
-        local enabled = toggleBtn.Text == "TRIP: OFF"
-        toggleBtn.Text = enabled and "TRIP: ON" or "TRIP: OFF"
-        toggleBtn.TextColor3 = enabled and Color3.fromRGB(0, 255, 0) or Part1.ACCENT_COLOR
-        status.Text = "Status: Trip " .. (enabled and "Enabled" or "Disabled")
+        tripEnabled = not tripEnabled
+        
+        if tripEnabled then
+            toggleBtn.Text = "TRIP: ON"
+            toggleBtn.TextColor3 = Color3.fromRGB(0, 255, 0)
+            status.Text = "Status: Trip Enabled"
+            
+            -- Store original colors and start effect
+            for _, part in ipairs(workspace:GetDescendants()) do
+                if part:IsA("BasePart") or part:IsA("Decal") then
+                    originalColors[part] = part.Color
+                end
+            end
+            
+            tripConnection = RunService.RenderStepped:Connect(updateTrip)
+        else
+            toggleBtn.Text = "TRIP: OFF"
+            toggleBtn.TextColor3 = ACCENT_COLOR
+            status.Text = "Status: Trip Disabled"
+            
+            -- Restore original colors
+            for part, originalColor in pairs(originalColors) do
+                if part and part.Parent then
+                    part.Color = originalColor
+                end
+            end
+            
+            if tripConnection then
+                tripConnection:Disconnect()
+                tripConnection = nil
+            end
+            
+            table.clear(originalColors)
+        end
     end)
 end
-
-local function implementMiscPage()
-    local page = Part2.pages["Misc"]
-    local toggleBtn = Part3.createButton(page, "MISC: OFF", UDim2.new(0.05, 0, 0.05, 0))
-    local status = Part3.createStatus(page, UDim2.new(0.05, 0, 0.15, 0))
+-- Misc Features Implementation
+local function setupMisc()
+    local page = pages["Misc"]
     
-    -- Basic Misc implementation
-    toggleBtn.MouseButton1Click:Connect(function()
-        local enabled = toggleBtn.Text == "MISC: OFF"
-        toggleBtn.Text = enabled and "MISC: ON" or "MISC: OFF"
-        toggleBtn.TextColor3 = enabled and Color3.fromRGB(0, 255, 0) or Part1.ACCENT_COLOR
-        status.Text = "Status: Misc " .. (enabled and "Enabled" or "Disabled")
+    -- Speed Changer
+    local speedBtn = createButton(page, "SPEED: OFF", UDim2.new(0.05, 0, 0.05, 0))
+    local speedSlider = Instance.new("Frame")
+    speedSlider.Name = "SpeedSlider"
+    speedSlider.Parent = page
+    speedSlider.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    speedSlider.BorderColor3 = ACCENT_COLOR
+    speedSlider.Position = UDim2.new(0.05, 0, 0.15, 0)
+    speedSlider.Size = UDim2.new(0.9, 0, 0.05, 0)
+    
+    local speedKnob = Instance.new("TextButton")
+    speedKnob.Name = "SpeedKnob"
+    speedKnob.Parent = speedSlider
+    speedKnob.BackgroundColor3 = ACCENT_COLOR
+    speedKnob.Size = UDim2.new(0.1, 0, 1, 0)
+    speedKnob.Text = ""
+    
+    -- Jump Power
+    local jumpBtn = createButton(page, "JUMP: OFF", UDim2.new(0.05, 0, 0.25, 0))
+    local jumpSlider = Instance.new("Frame")
+    jumpSlider.Name = "JumpSlider"
+    jumpSlider.Parent = page
+    jumpSlider.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    jumpSlider.BorderColor3 = ACCENT_COLOR
+    jumpSlider.Position = UDim2.new(0.05, 0, 0.35, 0)
+    jumpSlider.Size = UDim2.new(0.9, 0, 0.05, 0)
+    
+    local jumpKnob = Instance.new("TextButton")
+    jumpKnob.Name = "JumpKnob"
+    jumpKnob.Parent = jumpSlider
+    jumpKnob.BackgroundColor3 = ACCENT_COLOR
+    jumpKnob.Size = UDim2.new(0.1, 0, 1, 0)
+    jumpKnob.Text = ""
+    
+    -- Noclip
+    local noclipBtn = createButton(page, "NOCLIP: OFF", UDim2.new(0.05, 0, 0.45, 0))
+    
+    -- Status
+    local status = createStatus(page, UDim2.new(0.05, 0, 0.55, 0))
+    
+    -- Variables
+    local speedEnabled = false
+    local jumpEnabled = false
+    local noclipEnabled = false
+    local speedValue = 16
+    local jumpValue = 50
+    local defaultSpeed = 16
+    local defaultJump = 50
+    local connections = {}
+    
+    -- Slider Setup Function
+    local function setupSlider(slider, knob, callback)
+        local dragging = false
+        local dragStart = nil
+        local startPos = nil
+        
+        knob.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                dragging = true
+                dragStart = input.Position
+                startPos = knob.Position
+            end
+        end)
+        
+        UserInputService.InputChanged:Connect(function(input)
+            if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+                local delta = input.Position - dragStart
+                local xPos = math.clamp(startPos.X.Scale + delta.X / slider.AbsoluteSize.X, 0, 0.9)
+                knob.Position = UDim2.new(xPos, 0, 0, 0)
+                callback(xPos)
+            end
+        end)
+        
+        UserInputService.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                dragging = false
+            end
+        end)
+    end
+    
+    -- Speed Control
+    setupSlider(speedSlider, speedKnob, function(value)
+        speedValue = 16 + (value * 484) -- Range: 16-500
+        status.Text = "Speed: " .. math.floor(speedValue)
+        
+        if speedEnabled then
+            local character = Players.LocalPlayer.Character
+            if character and character:FindFirstChild("Humanoid") then
+                character.Humanoid.WalkSpeed = speedValue
+            end
+        end
+    end)
+    
+    speedBtn.MouseButton1Click:Connect(function()
+        speedEnabled = not speedEnabled
+        speedBtn.Text = "SPEED: " .. (speedEnabled and "ON" or "OFF")
+        speedBtn.TextColor3 = speedEnabled and Color3.fromRGB(0, 255, 0) or ACCENT_COLOR
+        
+        local character = Players.LocalPlayer.Character
+        if character and character:FindFirstChild("Humanoid") then
+            character.Humanoid.WalkSpeed = speedEnabled and speedValue or defaultSpeed
+        end
+    end)
+    
+    -- Jump Control
+    setupSlider(jumpSlider, jumpKnob, function(value)
+        jumpValue = 50 + (value * 450) -- Range: 50-500
+        status.Text = "Jump Power: " .. math.floor(jumpValue)
+        
+        if jumpEnabled then
+            local character = Players.LocalPlayer.Character
+            if character and character:FindFirstChild("Humanoid") then
+                character.Humanoid.JumpPower = jumpValue
+            end
+        end
+    end)
+    
+    jumpBtn.MouseButton1Click:Connect(function()
+        jumpEnabled = not jumpEnabled
+        jumpBtn.Text = "JUMP: " .. (jumpEnabled and "ON" or "OFF")
+        jumpBtn.TextColor3 = jumpEnabled and Color3.fromRGB(0, 255, 0) or ACCENT_COLOR
+        
+        local character = Players.LocalPlayer.Character
+        if character and character:FindFirstChild("Humanoid") then
+            character.Humanoid.JumpPower = jumpEnabled and jumpValue or defaultJump
+        end
+    end)
+    
+    -- Noclip Implementation
+    local function updateNoclip()
+        local character = Players.LocalPlayer.Character
+        if character then
+            for _, part in ipairs(character:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = not noclipEnabled
+                end
+            end
+        end
+    end
+    
+    noclipBtn.MouseButton1Click:Connect(function()
+        noclipEnabled = not noclipEnabled
+        noclipBtn.Text = "NOCLIP: " .. (noclipEnabled and "ON" or "OFF")
+        noclipBtn.TextColor3 = noclipEnabled and Color3.fromRGB(0, 255, 0) or ACCENT_COLOR
+        
+        if noclipEnabled then
+            connections.noclip = RunService.Stepped:Connect(updateNoclip)
+        else
+            if connections.noclip then
+                connections.noclip:Disconnect()
+                connections.noclip = nil
+            end
+            updateNoclip() -- Reset collision
+        end
+    end)
+    
+    -- Character Added Handler
+    Players.LocalPlayer.CharacterAdded:Connect(function(character)
+        if speedEnabled then
+            character:WaitForChild("Humanoid").WalkSpeed = speedValue
+        end
+        if jumpEnabled then
+            character:WaitForChild("Humanoid").JumpPower = jumpValue
+        end
     end)
 end
-
--- Scanner Animation
+-- Scanner Animation Function
 local function startScannerAnimation()
-    local scanner = Part2.ScannerEffect
+    coroutine.wrap(function()
+        while wait() do
+            if not ScannerEffect then break end
+            
+            TweenService:Create(ScannerEffect, TweenInfo.new(2, Enum.EasingStyle.Linear), {
+                Position = UDim2.new(0, 0, 1, 0)
+            }):Play()
+            wait(2)
+            if not ScannerEffect then break end
+            ScannerEffect.Position = UDim2.new(0, 0, 0, -2)
+        end
+    end)()
+end
+
+-- Loading Sequence
+local function runLoadingSequence()
+    local loadingSteps = {
+        {text = "Initializing system...", time = 0.5},
+        {text = "Loading modules...", time = 0.5},
+        {text = "Bypassing security...", time = 0.7},
+        {text = "Injecting code...", time = 0.6},
+        {text = "Establishing connection...", time = 0.5},
+        {text = "Loading interface...", time = 0.8},
+        {text = "Ready to execute", time = 1.0}
+    }
     
-    while true do
-        game:GetService("TweenService"):Create(scanner, TweenInfo.new(2, Enum.EasingStyle.Linear), {
-            Position = UDim2.new(0, 0, 1, 0)
-        }):Play()
-        Part1.safeWait(2)
-        scanner.Position = UDim2.new(0, 0, 0, -2)
+    for i, step in ipairs(loadingSteps) do
+        if not LoadingStatus or not LoadingStatus.Parent then return false end
+        LoadingStatus.Text = step.text
+        
+        local tween = TweenService:Create(LoadingFill, TweenInfo.new(step.time), {
+            Size = UDim2.new(i/#loadingSteps, 0, 1, 0)
+        })
+        tween:Play()
+        tween.Completed:Wait()
+    end
+    
+    safeWait(0.5)
+    return true
+end
+
+-- Protection System
+local function setupProtection()
+    -- Anti Remote Spy
+    local mt = getrawmetatable(game)
+    local oldNamecall = mt.__namecall
+    setreadonly(mt, false)
+    
+    mt.__namecall = newcclosure(function(self, ...)
+        local method = getnamecallmethod()
+        local args = {...}
+        
+        if method == "FireServer" or method == "InvokeServer" then
+            -- Add basic remote call protection
+            return nil
+        end
+        
+        return oldNamecall(self, ...)
+    end)
+    
+    setreadonly(mt, true)
+    
+    -- Anti Memory Detection
+    local function obfuscateMemory()
+        local fakeTable = {}
+        for i = 1, 1000 do
+            fakeTable[i] = string.rep("a", math.random(100, 1000))
+        end
+        return fakeTable
+    end
+    
+    -- Keep some fake memory allocated
+    getgenv().antiMemoryDetection = obfuscateMemory()
+end
+
+-- Tab Management
+local function setupTabs()
+    -- Show first page by default
+    pages["Aimbot"].Visible = true
+    buttons["Aimbot"].BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    
+    -- Tab switching logic
+    for name, button in pairs(buttons) do
+        button.MouseButton1Click:Connect(function()
+            for _, page in pairs(pages) do
+                page.Visible = false
+            end
+            for _, btn in pairs(buttons) do
+                btn.BackgroundColor3 = BG_COLOR
+            end
+            pages[name].Visible = true
+            button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+        end)
     end
 end
 
--- Initialize Everything
+-- Close Button Handler
+CloseBtn.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
+    getgenv().HackerInterfaceLoaded = false
+end)
+-- Main Initialization
 local function init()
-    -- Load functions
-    Part3.implementAimbot()
-    Part4.implementOrbit()
-    implementESP()
-    implementTripPage()
-    implementMiscPage()
+    -- Initialize Protection
+    setupProtection()
     
-    -- Run loading sequence
-    if Part1.runLoadingSequence() then
-        -- Show main interface
-        Part2.MainFrame.BackgroundTransparency = 1
-        Part2.MainFrame.Visible = true
+    -- Setup Features
+    setupTabs()
+    setupAimbot()
+    setupOrbit()
+    setupESP()
+    setupTrip()
+    setupMisc()
+    
+    -- Run Loading Sequence
+    if runLoadingSequence() then
+        -- Show Main Interface
+        MainFrame.BackgroundTransparency = 1
+        MainFrame.Visible = true
         
-        game:GetService("TweenService"):Create(Part2.MainFrame, TweenInfo.new(0.5), {
+        TweenService:Create(MainFrame, TweenInfo.new(0.5), {
             BackgroundTransparency = 0
         }):Play()
         
-        -- Start scanner animation
-        coroutine.wrap(function()
-            startScannerAnimation()
-        end)()
+        -- Start Scanner Animation
+        startScannerAnimation()
         
-        -- Clean up loading screen
-        Part1.safeWait(1)
-        if Part1.LoadingFrame and Part1.LoadingFrame.Parent then
-            Part1.LoadingFrame:Destroy()
+        -- Cleanup Loading Screen
+        safeWait(1)
+        if LoadingFrame and LoadingFrame.Parent then
+            LoadingFrame:Destroy()
         end
     end
 end
 
--- Protection and Error Handling
-local function setupProtection()
-    local mt = getrawmetatable(game)
-    local old = mt.__namecall
-    setreadonly(mt, false)
-    mt.__namecall = newcclosure(function(...)
-        local args = {...}
-        local method = getnamecallmethod()
-        if method == "FireServer" or method == "InvokeServer" then
-            return nil
-        end
-        return old(...)
-    end)
-    setreadonly(mt, true)
+-- Error Handler
+local function errorHandler(err)
+    warn("[Hacker Interface Error]:", tostring(err))
+    
+    -- Create Error Notification
+    local errorFrame = Instance.new("Frame")
+    errorFrame.Size = UDim2.new(0, 200, 0, 100)
+    errorFrame.Position = UDim2.new(0.5, -100, 0.5, -50)
+    errorFrame.BackgroundColor3 = Color3.fromRGB(40, 0, 0)
+    errorFrame.BorderColor3 = Color3.fromRGB(255, 0, 0)
+    errorFrame.Parent = ScreenGui
+    
+    local errorText = Instance.new("TextLabel")
+    errorText.Size = UDim2.new(1, -20, 1, -20)
+    errorText.Position = UDim2.new(0, 10, 0, 10)
+    errorText.BackgroundTransparency = 1
+    errorText.TextColor3 = Color3.fromRGB(255, 255, 255)
+    errorText.TextSize = 14
+    errorText.Text = "Error: " .. tostring(err)
+    errorText.TextWrapped = true
+    errorText.Parent = errorFrame
+    
+    wait(5)
+    errorFrame:Destroy()
 end
 
 -- Start the system with error handling
-xpcall(function()
-    setupProtection()
-    init()
-end, function(err)
-    warn("C00lgui Error: " .. tostring(err))
-end)
+xpcall(init, errorHandler)
+
+-- Return interface (for potential external control)
+return {
+    ScreenGui = ScreenGui,
+    MainFrame = MainFrame,
+    Version = VERSION
+}
