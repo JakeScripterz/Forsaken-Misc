@@ -1,0 +1,277 @@
+--// You Shouldn't Be Here
+
+-- Services
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+
+-- Create main GUI elements
+local ScreenGui = Instance.new("ScreenGui")
+local LoadingFrame = Instance.new("Frame")
+local MainFrame = Instance.new("Frame")
+
+-- GUI Setup
+ScreenGui.Name = "HackerInterface"
+ScreenGui.Parent = game:GetService("CoreGui")
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+-- Loading Screen
+LoadingFrame.Name = "LoadingFrame"
+LoadingFrame.Parent = ScreenGui
+LoadingFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+LoadingFrame.BorderColor3 = Color3.fromRGB(255, 0, 0)
+LoadingFrame.Position = UDim2.new(0.5, -200, 0.5, -150)
+LoadingFrame.Size = UDim2.new(0, 400, 0, 300)
+LoadingFrame.ZIndex = 1000
+
+local LoadingTitle = Instance.new("TextLabel")
+LoadingTitle.Name = "LoadingTitle"
+LoadingTitle.Parent = LoadingFrame
+LoadingTitle.BackgroundTransparency = 1
+LoadingTitle.Position = UDim2.new(0, 0, 0, 20)
+LoadingTitle.Size = UDim2.new(1, 0, 0, 30)
+LoadingTitle.Font = Enum.Font.Code
+LoadingTitle.Text = "C00lgui v8"
+LoadingTitle.TextColor3 = Color3.fromRGB(255, 0, 0)
+LoadingTitle.TextSize = 24
+LoadingTitle.ZIndex = 1001
+
+-- User Info Display
+local UserInfo = Instance.new("TextLabel")
+UserInfo.Name = "UserInfo"
+UserInfo.Parent = LoadingFrame
+UserInfo.BackgroundTransparency = 1
+UserInfo.Position = UDim2.new(0, 10, 0, 60)
+UserInfo.Size = UDim2.new(1, -20, 0, 20)
+LoadingTitle.Font = Enum.Font.Code
+UserInfo.Text = "User: " .. Players.LocalPlayer.Name
+UserInfo.TextColor3 = Color3.fromRGB(255, 0, 0)
+UserInfo.TextSize = 14
+UserInfo.TextXAlignment = Enum.TextXAlignment.Left
+UserInfo.ZIndex = 1001
+
+local LoadingStatus = Instance.new("TextLabel")
+LoadingStatus.Name = "LoadingStatus"
+LoadingStatus.Parent = LoadingFrame
+LoadingStatus.BackgroundTransparency = 1
+LoadingStatus.Position = UDim2.new(0, 10, 0, 100)
+LoadingStatus.Size = UDim2.new(1, -20, 0, 20)
+LoadingStatus.Font = Enum.Font.Code
+LoadingStatus.Text = "Initializing..."
+LoadingStatus.TextColor3 = Color3.fromRGB(255, 0, 0)
+LoadingStatus.TextSize = 16
+LoadingStatus.TextXAlignment = Enum.TextXAlignment.Left
+LoadingStatus.ZIndex = 1001
+
+local LoadingBar = Instance.new("Frame")
+LoadingBar.Name = "LoadingBar"
+LoadingBar.Parent = LoadingFrame
+LoadingBar.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+LoadingBar.BorderColor3 = Color3.fromRGB(255, 0, 0)
+LoadingBar.Position = UDim2.new(0, 10, 0, 130)
+LoadingBar.Size = UDim2.new(1, -20, 0, 20)
+LoadingBar.ZIndex = 1001
+
+local LoadingFill = Instance.new("Frame")
+LoadingFill.Name = "LoadingFill"
+LoadingFill.Parent = LoadingBar
+LoadingFill.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+LoadingFill.BorderSizePixel = 0
+LoadingFill.Size = UDim2.new(0, 0, 1, 0)
+LoadingFill.ZIndex = 1002
+
+-- Create glitch text effect
+local function glitchText(text)
+    local glitchChars = {"Δ", "Σ", "π", "Ω", "λ", "γ"}
+    local result = ""
+    for i = 1, #text do
+        if math.random() < 0.1 then
+            result = result .. glitchChars[math.random(1, #glitchChars)]
+        else
+            result = result .. text:sub(i,i)
+        end
+    end
+    return result
+end
+
+-- Loading Sequence with Matrix effect
+local function typeWrite(text, label)
+    local displayText = ""
+    for i = 1, #text do
+        displayText = displayText .. text:sub(i,i)
+        label.Text = displayText
+        if math.random() < 0.1 then
+            label.Text = glitchText(displayText)
+            wait(0.02)
+            label.Text = displayText
+        end
+        wait(0.02)
+    end
+end
+
+-- Main Interface Setup
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+MainFrame.BorderColor3 = Color3.fromRGB(255, 0, 0)
+MainFrame.Position = UDim2.new(0.5, -200, 0.5, -150)
+MainFrame.Size = UDim2.new(0, 400, 0, 300)
+MainFrame.Visible = false
+MainFrame.Active = true
+MainFrame.Draggable = true
+
+-- Create the scanner effect
+local ScannerEffect = Instance.new("Frame")
+ScannerEffect.Name = "ScannerEffect"
+ScannerEffect.Parent = MainFrame
+ScannerEffect.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+ScannerEffect.BackgroundTransparency = 0.9
+ScannerEffect.BorderSizePixel = 0
+ScannerEffect.Size = UDim2.new(1, 0, 0, 2)
+ScannerEffect.ZIndex = 2
+
+-- Title Bar
+local Title = Instance.new("TextLabel")
+Title.Name = "Title"
+Title.Parent = MainFrame
+Title.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+Title.BorderColor3 = Color3.fromRGB(255, 0, 0)
+Title.Size = UDim2.new(1, -25, 0, 30)
+Title.Font = Enum.Font.Code
+Title.Text = "C00lgui v8"
+Title.TextColor3 = Color3.fromRGB(255, 0, 0)
+Title.TextSize = 16
+
+-- Minimize Button
+local MinimizeBtn = Instance.new("TextButton")
+MinimizeBtn.Name = "MinimizeBtn"
+MinimizeBtn.Parent = MainFrame
+MinimizeBtn.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+MinimizeBtn.BorderColor3 = Color3.fromRGB(255, 0, 0)
+MinimizeBtn.Position = UDim2.new(1, -25, 0, 0)
+MinimizeBtn.Size = UDim2.new(0, 25, 0, 30)
+MinimizeBtn.Font = Enum.Font.Code
+MinimizeBtn.Text = "-"
+MinimizeBtn.TextColor3 = Color3.fromRGB(255, 0, 0)
+MinimizeBtn.TextSize = 20
+
+-- Create Tab System
+local TabContainer = Instance.new("Frame")
+TabContainer.Name = "TabContainer"
+TabContainer.Parent = MainFrame
+TabContainer.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+TabContainer.BorderColor3 = Color3.fromRGB(255, 0, 0)
+TabContainer.Position = UDim2.new(0, 10, 0, 40)
+TabContainer.Size = UDim2.new(1, -20, 0, 30)
+
+local ContentContainer = Instance.new("Frame")
+ContentContainer.Name = "ContentContainer"
+ContentContainer.Parent = MainFrame
+ContentContainer.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+ContentContainer.BorderColor3 = Color3.fromRGB(255, 0, 0)
+ContentContainer.Position = UDim2.new(0, 10, 0, 80)
+ContentContainer.Size = UDim2.new(1, -20, 1, -90)
+
+-- Tab Button Creation Function
+local function createTab(name, position)
+    local tab = Instance.new("TextButton")
+    tab.Name = name .. "Tab"
+    tab.Parent = TabContainer
+    tab.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    tab.BorderColor3 = Color3.fromRGB(255, 0, 0)
+    tab.Position = UDim2.new(position * 0.2, 0, 0, 0)
+    tab.Size = UDim2.new(0.2, -2, 1, 0)
+    tab.Font = Enum.Font.Code
+    tab.Text = name
+    tab.TextColor3 = Color3.fromRGB(255, 0, 0)
+    tab.TextSize = 14
+    return tab
+end
+
+-- Create Tabs
+local tabs = {
+    createTab("Aimbot", 0),
+    createTab("Orbit", 1),
+    createTab("Trip", 2),
+    createTab("ESP", 3),
+    createTab("Misc", 4)
+}
+
+-- Create Content Pages
+local pages = {}
+for _, tab in ipairs(tabs) do
+    local page = Instance.new("Frame")
+    page.Name = tab.Text .. "Page"
+    page.Parent = ContentContainer
+    page.BackgroundTransparency = 1
+    page.Size = UDim2.new(1, 0, 1, 0)
+    page.Visible = false
+    pages[tab.Text] = page
+end
+
+-- Show first page by default
+pages["Aimbot"].Visible = true
+
+-- Tab Switching Logic
+for _, tab in ipairs(tabs) do
+    tab.MouseButton1Click:Connect(function()
+        for _, page in pairs(pages) do
+            page.Visible = false
+        end
+        pages[tab.Text].Visible = true
+    end)
+end
+
+-- Continue with implementation of individual features...
+-- [I can provide the complete implementation of each feature (Aimbot, Orbit, etc.) if you want]
+
+-- Start the interface
+local function startSystem()
+    local loadingSteps = {
+        {text = "Initializing system modules...", time = 0.5},
+        {text = "Bypassing security protocols...", time = 0.7},
+        {text = "Accessing mainframe...", time = 0.6},
+        {text = "Loading exploit framework...", time = 0.8},
+        {text = "Establishing secure connection...", time = 0.5},
+        {text = "System successfully compromised", time = 1.0}
+    }
+    
+    for _, step in ipairs(loadingSteps) do
+        typeWrite(step.text, LoadingStatus)
+        wait(step.time)
+    end
+    
+    -- Transition to main interface
+    TweenService:Create(LoadingFrame, TweenInfo.new(1), {
+        BackgroundTransparency = 1,
+        Position = UDim2.new(0.5, -200, 0.6, -150)
+    }):Play()
+    
+    MainFrame.Position = UDim2.new(0.5, -200, 0.4, -150)
+    MainFrame.BackgroundTransparency = 1
+    MainFrame.Visible = true
+    
+    TweenService:Create(MainFrame, TweenInfo.new(1), {
+        BackgroundTransparency = 0,
+        Position = UDim2.new(0.5, -200, 0.5, -150)
+    }):Play()
+    
+    wait(1)
+    LoadingFrame:Destroy()
+end
+
+-- Scanner Animation
+local function animateScanner()
+    while true do
+        TweenService:Create(ScannerEffect, TweenInfo.new(2, Enum.EasingStyle.Linear), {
+            Position = UDim2.new(0, 0, 1, 0)
+        }):Play()
+        wait(2)
+        ScannerEffect.Position = UDim2.new(0, 0, 0, -2)
+    end
+end
+
+-- Initialize the interface
+startSystem()
+coroutine.wrap(animateScanner)()
